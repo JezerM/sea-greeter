@@ -1,6 +1,6 @@
 configure_file(output: 'config.h', configuration: conf)
 
-web_extension_sources = ['extensions.c']
+web_extension_sources = ['extensions.c', 'lightdm-extension.c']
 
 gtk3 = dependency('gtk+-3.0', version: '>=3.24')
 webkit2 = dependency('webkit2gtk-4.0', version: '>=2.34')
@@ -8,11 +8,12 @@ webkit2_webext = dependency('webkit2gtk-web-extension-4.0', version: '>=2.34')
 
 yaml = dependency('yaml-0.1', version: '>=0.2')
 glib = dependency('glib-2.0', version: '>=2.68')
+lightdm = dependency('liblightdm-gobject-1')
 
 web_extension = library(
   'lightdm-sea-greeter-webext',
   web_extension_sources,
-  dependencies: [webkit2_webext],
+  dependencies: [webkit2_webext, lightdm],
   install: true,
   install_dir: '/usr/lib/sea-greeter/'
 )

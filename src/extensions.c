@@ -1,5 +1,8 @@
 #include <webkit2/webkit-web-extension.h>
 #include "logger.h"
+#include "lightdm-extension.h"
+
+guint64 page_id;
 
 static void
 web_page_document_loaded(WebKitWebPage *web_page, gpointer user_data) {
@@ -15,6 +18,8 @@ web_page_created_callback(WebKitWebExtension *extension,
 {
   (void) extension;
   (void) user_data;
+  page_id = webkit_web_page_get_id(web_page);
+
   g_signal_connect(web_page, "document-loaded",
       G_CALLBACK(web_page_document_loaded),
       NULL);
@@ -25,4 +30,5 @@ webkit_web_extension_initialize (WebKitWebExtension *extension) {
   g_signal_connect(extension, "page-created",
       G_CALLBACK (web_page_created_callback),
       NULL);
+  web_page_initialize(extension);
 }
