@@ -9,6 +9,7 @@ Sea (like C) greeter for LightDM allows to create themes with web technologies, 
 - libwebkit2gtk-web-extension
 - libyaml-0.1
 - libglib-2.0
+- liblightdm-gobject-1-dev
 
 ### Build dependencies
 
