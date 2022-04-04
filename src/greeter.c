@@ -96,6 +96,9 @@ int main(int argc, char** argv) {
   WebKitSettings *settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW(web_view));
   g_object_set(G_OBJECT(settings), "allow-universal-access-from-file-urls", TRUE, NULL);
   g_object_set(G_OBJECT(settings), "allow-file-access-from-file-urls", TRUE, NULL);
+  g_object_set(G_OBJECT(settings), "enable-page-cache", TRUE, NULL);
+  g_object_set(G_OBJECT(settings), "enable-offline-web-application-cache", TRUE, NULL);
+  g_object_set(G_OBJECT(settings), "enable-html5-local-storage", TRUE, NULL);
 
   WebKitWebContext *context = webkit_web_view_get_context(web_view);
   webkit_web_context_set_cache_model(context, WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER);
