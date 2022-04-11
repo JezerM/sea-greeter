@@ -1,6 +1,13 @@
 configure_file(output: 'config.h', configuration: conf)
 
-web_extension_sources = ['extensions.c', 'lightdm-extension.c']
+web_extension_sources = [
+  'extensions.c',
+  'lightdm-extension.c',
+  'bridge/lightdm-objects.c',
+  'bridge/lightdm.c',
+  'bridge/utils.c',
+  'bridge/lightdm-signal.c',
+]
 
 gtk3 = dependency('gtk+-3.0', version: '>=3.24')
 webkit2 = dependency('webkit2gtk-4.0', version: '>=2.34')
@@ -18,7 +25,7 @@ web_extension = library(
   install_dir: '/usr/lib/sea-greeter/'
 )
 
-greeter_sources = ['greeter.c', 'settings.c', 'theme.c']
+greeter_sources = ['greeter.c', 'settings.c', 'theme.c', ]
 
 greeter = executable(
   'sea-greeter',

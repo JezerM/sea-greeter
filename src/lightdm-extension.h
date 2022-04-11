@@ -30,4 +30,9 @@ G_END_DECLS
 
 void web_page_initialize(WebKitWebExtension *extension);
 
+typedef struct _LDMObject {
+  JSCContext *context;
+  JSCValue *value;
+} ldm_object;
+
 #endif
