@@ -6,6 +6,7 @@
 #include <JavaScriptCore/JavaScript.h>
 #include <lightdm-gobject-1/lightdm.h>
 
+#include "bridge/utils.h"
 #include "settings.h"
 #include "logger.h"
 #include "lightdm-extension.h"
@@ -58,11 +59,6 @@ LightDMUser_to_JSCValue(JSCContext *context, LightDMUser *user) {
   return value;
 }
 
-
-// Esto es un proyecto aún no publicado
-// hecho en C que utiliza WebKitGtk y LightDM para
-// iniciar sesión en Linux :D
-
 JSCValue *
 LightDMSession_to_JSCValue(JSCContext *context, LightDMSession *session) {
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
@@ -97,4 +93,51 @@ LightDMLanguage_to_JSCValue(JSCContext *context, LightDMLanguage *language) {
   jsc_value_object_set_property(value, "territory",
       jsc_value_new_string(context, territory));
   return value;
+}
+JSCValue *
+LightDMLayout_to_JSCValue(JSCContext *context, LightDMLayout *layout) {
+  JSCValue *value = jsc_value_new_object(context, NULL, NULL);
+
+  const gchar *name = lightdm_layout_get_name(layout);
+  const gchar *description = lightdm_layout_get_description(layout);
+  const gchar *short_description = lightdm_layout_get_short_description(layout);
+
+  jsc_value_object_set_property(value, "name",
+      jsc_value_new_string(context, name));
+  jsc_value_object_set_property(value, "description",
+      jsc_value_new_string(context, description));
+  jsc_value_object_set_property(value, "short_description",
+      jsc_value_new_string(context, short_description));
+  return value;
+}
+
+LightDMLayout *
+JSCValue_to_LightDMLayout(JSCContext *context, JSCValue *object) {
+
+  if (
+      !jsc_value_object_has_property(object, "name") ||
+      !jsc_value_object_has_property(object, "description") ||
+      !jsc_value_object_has_property(object, "short_description")
+  ) {
+    jsc_context_throw(context, "Invalid LightDMLayout");
+    return NULL;
+  }
+
+  gchar *name = js_value_to_string_or_null(
+      jsc_value_object_get_property(object, "name")
+      );
+
+  GList *layout_array = lightdm_get_layouts();
+  LightDMLayout *layout = NULL;
+
+  GList *curr = layout_array;
+  while (curr != NULL) {
+    if (g_strcmp0(lightdm_layout_get_name(curr->data), name) == 0) {
+      layout = curr->data;
+      break;
+    }
+    curr = curr-> next;
+  }
+  g_free(name);
+  return layout;
 }
