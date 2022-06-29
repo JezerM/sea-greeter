@@ -778,44 +778,85 @@ LightDM_initialize(
   JSCValue *ldm_constructor = jsc_class_add_constructor(
       LightDM_class, NULL,
       G_CALLBACK(LightDM_constructor),
-      NULL, NULL,
-      JSC_TYPE_VALUE, 0);
+      js_context, NULL,
+      JSC_TYPE_VALUE, 0, NULL);
+
+  struct JSCClassProperty LightDM_properties[] = {
+    {"authentication_user", G_CALLBACK(LightDM_authentication_user_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"autologin_guest", G_CALLBACK(LightDM_autologin_guest_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"autologin_timeout", G_CALLBACK(LightDM_autologin_timeout_getter_cb), NULL, G_TYPE_INT},
+    {"autologin_user", G_CALLBACK(LightDM_autologin_user_getter_cb), NULL, JSC_TYPE_VALUE},
+
+    {"can_hibernate", G_CALLBACK(LightDM_can_hibernate_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"can_restart", G_CALLBACK(LightDM_can_restart_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"can_shutdown", G_CALLBACK(LightDM_can_shutdown_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"can_suspend", G_CALLBACK(LightDM_can_suspend_getter_cb), NULL, G_TYPE_BOOLEAN},
+
+    {"default_session", G_CALLBACK(LightDM_default_session_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"has_guest_account", G_CALLBACK(LightDM_has_guest_account_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"hide_users_hint", G_CALLBACK(LightDM_hide_users_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"hostname", G_CALLBACK(LightDM_hostname_getter_cb), NULL, JSC_TYPE_VALUE},
+
+    {"in_authentication", G_CALLBACK(LightDM_in_authentication_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"is_authenticated", G_CALLBACK(LightDM_is_authenticated_getter_cb), NULL, G_TYPE_BOOLEAN},
+
+    {"language", G_CALLBACK(LightDM_language_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"languages", G_CALLBACK(LightDM_languages_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"layout", G_CALLBACK(LightDM_layout_getter_cb), G_CALLBACK(LightDM_layout_setter_cb), JSC_TYPE_VALUE},
+    {"layouts", G_CALLBACK(LightDM_layouts_getter_cb), NULL, JSC_TYPE_VALUE},
+
+    {"lock_hint", G_CALLBACK(LightDM_lock_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"remote_sessions", G_CALLBACK(LightDM_remote_sessions_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"select_guest_hint", G_CALLBACK(LightDM_select_guest_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"select_user_hint", G_CALLBACK(LightDM_select_user_hint_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"sessions", G_CALLBACK(LightDM_sessions_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"shared_data_directory", G_CALLBACK(LightDM_shared_data_directory_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"show_manual_login_hint", G_CALLBACK(LightDM_show_manual_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"show_remote_login_hint", G_CALLBACK(LightDM_show_remote_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"users", G_CALLBACK(LightDM_users_getter_cb), NULL, JSC_TYPE_VALUE},
+
+    {NULL, NULL, NULL, 0},
+  };
+  struct JSCClassMethod LightDM_methods[] = {
+    {"authenticate", G_CALLBACK(LightDM_authenticate_cb), G_TYPE_BOOLEAN},
+    {"authenticate_as_guest", G_CALLBACK(LightDM_authenticate_as_guest_cb), G_TYPE_BOOLEAN},
+    {"cancel_authentication", G_CALLBACK(LightDM_cancel_authentication_cb), G_TYPE_BOOLEAN},
+    {"cancel_autologin", G_CALLBACK(LightDM_cancel_autologin_cb), G_TYPE_BOOLEAN},
+    {"hibernate", G_CALLBACK(LightDM_hibernate_cb), G_TYPE_BOOLEAN},
+    {"respond", G_CALLBACK(LightDM_respond_cb), G_TYPE_BOOLEAN},
+    {"restart", G_CALLBACK(LightDM_restart_cb), G_TYPE_BOOLEAN},
+    {"set_language", G_CALLBACK(LightDM_set_language_cb), G_TYPE_BOOLEAN},
+    {"shutdown", G_CALLBACK(LightDM_shutdown_cb), G_TYPE_BOOLEAN},
+    {"start_session", G_CALLBACK(LightDM_start_session_cb), G_TYPE_BOOLEAN},
+    {"suspend", G_CALLBACK(LightDM_suspend_cb), G_TYPE_BOOLEAN},
+
+    {NULL, NULL, 0},
+  };
+  struct JSCClassSignal LightDM_signals[] = {
+    {"authentication_complete"},
+    {"autologin_timer_expired"},
+    {"show_prompt"},
+    {"show_message"},
+    {NULL},
+  };
 
   initialize_class_properties(LightDM_class, LightDM_properties);
   initialize_class_methods(LightDM_class, LightDM_methods);
-
-  /*JSCValue *authentication_complete_signal = LightDM_signal_new(*/
-      /*js_context,*/
-      /*"authentication_complete"*/
-      /*);*/
-  /*JSCValue *show_prompt_signal = LightDM_signal_new(*/
-      /*js_context,*/
-      /*"show_prompt"*/
-      /*);*/
 
   JSCValue *value = jsc_value_constructor_callv(ldm_constructor, 0, NULL);
   LightDM_object = malloc(sizeof *LightDM_object);
   LightDM_object->value = value;
   LightDM_object->context = js_context;
+
   JSCValue *ldm_greeter_object = jsc_value_new_object(js_context, LightDM_object, LightDM_class);
+
   initialize_object_signals(js_context, ldm_greeter_object, LightDM_signals);
 
   LightDM_object->value = ldm_greeter_object;
 
-  /*jsc_value_object_set_property(*/
-      /*ldm_greeter_object,*/
-      /*"authentication_complete",*/
-      /*authentication_complete_signal*/
-      /*);*/
-  /*jsc_value_object_set_property(*/
-      /*ldm_greeter_object,*/
-      /*"show_prompt",*/
-      /*show_prompt_signal*/
-      /*);*/
-
   jsc_value_object_set_property(
       global_object,
-      "lightdmg",
+      "lightdm",
       ldm_greeter_object
       );
 }
