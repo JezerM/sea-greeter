@@ -5,7 +5,7 @@
 #include <webkit2/webkit-web-extension.h>
 #include <JavaScriptCore/JavaScript.h>
 
-#define G_TYPE_ARRAY_POST -1101
+#define JSC_TYPE_VALUE_POST -1101
 
 struct JSCClassProperty {
   const gchar *name;
@@ -23,7 +23,7 @@ struct JSCClassSignal {
 };
 
 gchar *
-js_value_to_string(JSCValue *value);
+js_value_to_string_or_null(JSCValue *value);
 
 int
 g_string_get_index_of(GString *source, GString *find);

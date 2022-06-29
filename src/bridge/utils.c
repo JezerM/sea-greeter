@@ -13,7 +13,7 @@
  * Converts a JSCValue to a string
  */
 gchar *
-js_value_to_string(JSCValue *value) {
+js_value_to_string_or_null(JSCValue *value) {
   if (!jsc_value_is_string(value)) return NULL;
   return jsc_value_to_string(value);
 }
@@ -53,7 +53,7 @@ void initialize_class_properties(
   struct JSCClassProperty current = properties[i];
   while (current.name != NULL) {
     switch (current.property_type) {
-      case G_TYPE_ARRAY_POST:
+      case JSC_TYPE_VALUE_POST:
         current.property_type = JSC_TYPE_VALUE;
         break;
     }
@@ -82,7 +82,7 @@ void initialize_class_methods(
   struct JSCClassMethod current = methods[i];
   while (current.name != NULL) {
     switch (current.return_type) {
-      case G_TYPE_ARRAY_POST:
+      case JSC_TYPE_VALUE_POST:
         current.return_type = JSC_TYPE_VALUE;
         break;
     }

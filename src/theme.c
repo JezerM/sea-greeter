@@ -48,7 +48,7 @@ void load_theme(WebKitWebView *web_view) {
     return;
   }
   GString *html = g_string_new(NULL);
-  char c;
+  int c;
   while ((c = fgetc(file)) != EOF) {
     g_string_append_c(html, c);
   }
