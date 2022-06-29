@@ -859,4 +859,18 @@ LightDM_initialize(
       "lightdm",
       ldm_greeter_object
       );
+
+  JSCValue *event_class = jsc_value_object_get_property(global_object, "Event");
+  JSCValue *event_parameters[] = {
+    jsc_value_new_string(js_context, "GreeterReady"),
+    NULL
+  };
+  JSCValue *event_obj = jsc_value_constructor_callv(event_class, 1, event_parameters);
+
+  jsc_value_object_set_property(
+      global_object,
+      "_ready_event",
+      event_obj
+      );
+
 }
