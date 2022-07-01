@@ -12,6 +12,43 @@ web_page_document_loaded(WebKitWebPage *web_page, gpointer user_data) {
 }
 
 static void
+web_page_console_message_sent(
+    WebKitWebPage *web_page, WebKitConsoleMessage *console_message,
+    gpointer user_data)
+{
+  (void) web_page;
+  (void) user_data;
+  GDateTime *now = g_date_time_new_now_local();\
+  char *timestamp = g_date_time_format(now, "%Y-%m-%d %H:%M:%S");\
+
+  char *type = "";
+  const gchar *message = webkit_console_message_get_text(console_message);
+  const gchar *source_id = webkit_console_message_get_source_id(console_message);
+  guint line = webkit_console_message_get_line(console_message);
+
+  switch (webkit_console_message_get_level(console_message)) {
+    case WEBKIT_CONSOLE_MESSAGE_LEVEL_DEBUG:
+      type = "DEBUG";
+      break;
+    case WEBKIT_CONSOLE_MESSAGE_LEVEL_ERROR:
+      type = "ERROR";
+      break;
+    case WEBKIT_CONSOLE_MESSAGE_LEVEL_INFO:
+      type = "INFO";
+      break;
+    case WEBKIT_CONSOLE_MESSAGE_LEVEL_WARNING:
+      type = "WARNING";
+      break;
+    case WEBKIT_CONSOLE_MESSAGE_LEVEL_LOG:
+      type = "LOG";
+      break;
+  }
+
+  fprintf(stderr, "%s [ %s ] %s %d: %s\n",\
+      timestamp, type, source_id, line, message);\
+}
+
+static void
 web_page_created_callback(WebKitWebExtension *extension,
     WebKitWebPage *web_page,
     gpointer user_data)
@@ -22,6 +59,10 @@ web_page_created_callback(WebKitWebExtension *extension,
 
   g_signal_connect(web_page, "document-loaded",
       G_CALLBACK(web_page_document_loaded),
+      NULL);
+
+  g_signal_connect(web_page, "console-message-sent",
+      G_CALLBACK(web_page_console_message_sent),
       NULL);
 }
 
