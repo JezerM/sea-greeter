@@ -774,14 +774,28 @@ LightDM_initialize(
     WebKitFrame *web_frame,
     WebKitWebExtension *extension
 ) {
-  (void) web_page;
   (void) extension;
-
-  Greeter = lightdm_greeter_new();
-  UserList = lightdm_user_list_get_instance();
 
   JSCContext *js_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
   JSCValue *global_object = jsc_context_get_global_object(js_context);
+
+  if (Greeter != NULL) {
+    jsc_value_object_set_property(
+        global_object,
+        "lightdm",
+        LightDM_object->value
+        );
+
+    jsc_value_object_set_property(
+        global_object,
+        "_ready_event",
+        ready_event
+        );
+    return;
+  }
+
+  UserList = lightdm_user_list_get_instance();
+  Greeter = lightdm_greeter_new();
 
   LightDM_class = jsc_context_register_class(
       js_context,
