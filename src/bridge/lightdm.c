@@ -23,6 +23,8 @@ extern guint64 page_id;
 
 JSCClass *LightDM_class;
 ldm_object *LightDM_object;
+JSCValue *ready_event;
+
 static GString *shared_data_directory;
 
 /* LightDM Class definitions */
@@ -749,6 +751,19 @@ LightDM_constructor(JSCContext *context) {
   return jsc_value_new_null(context);
 }
 
+static void
+ready_event_loaded(WebKitWebPage *web_page, JSCContext *context) {
+  (void) web_page;
+  JSCValue *global_object = jsc_context_get_global_object(context);
+
+  JSCValue *dispatch_event = jsc_value_object_get_property(global_object, "dispatchEvent");
+  JSCValue *parameters[] = {
+    ready_event,
+    NULL
+  };
+  (void) jsc_value_function_callv(dispatch_event, 1, parameters);
+}
+
 /**
  * Initialize the LightDM environment
  */
@@ -865,12 +880,15 @@ LightDM_initialize(
     jsc_value_new_string(js_context, "GreeterReady"),
     NULL
   };
-  JSCValue *event_obj = jsc_value_constructor_callv(event_class, 1, event_parameters);
+  ready_event = jsc_value_constructor_callv(event_class, 1, event_parameters);
 
   jsc_value_object_set_property(
       global_object,
       "_ready_event",
-      event_obj
+      ready_event
       );
 
+  g_signal_connect(web_page, "document-loaded",
+      G_CALLBACK(ready_event_loaded),
+      js_context);
 }
