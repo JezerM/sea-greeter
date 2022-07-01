@@ -105,13 +105,21 @@ web_view_user_message_received(
  * Set keybinding accelerators
  */
 static void
-set_keybindings() {
+set_keybindings(GtkApplicationWindow *window) {
+  GVariant *window_id = g_variant_new_uint32(
+      gtk_application_window_get_id(window)
+      );
+  gchar *toggle_inspector_name = g_action_print_detailed_name(
+      "win.toggle-inspector",
+      window_id
+      );
+
   const struct accelerator {
     const gchar *action;
     const gchar *accelerators[9];
   } accels[] = {
     { "app.quit", { "<Control>Q", NULL } },
-    { "win.toggle-inspector", { "<shift><Primary>I", "F12", NULL } },
+    { toggle_inspector_name, { "<shift><Primary>I", "F12", NULL } },
     { NULL, { NULL } }
   };
 
@@ -351,7 +359,7 @@ app_activate_cb(GtkApplication *app, gpointer user_data) {
 
   initialize_actions(app);
 
-  set_keybindings();
+  set_keybindings(main_window);
 
   load_theme(web_view);
   /*webkit_web_view_load_uri(web_view1, "google.com");*/
