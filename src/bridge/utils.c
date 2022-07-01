@@ -47,7 +47,7 @@ g_string_get_last_index_of(GString *source, GString *find) {
  */
 void initialize_class_properties(
     JSCClass *class,
-    struct JSCClassProperty properties[])
+    const struct JSCClassProperty properties[])
 {
   int i = 0;
   struct JSCClassProperty current = properties[i];
@@ -76,7 +76,7 @@ void initialize_class_properties(
  */
 void initialize_class_methods(
     JSCClass *class,
-    struct JSCClassMethod methods[])
+    const struct JSCClassMethod methods[])
 {
   int i = 0;
   struct JSCClassMethod current = methods[i];
@@ -105,7 +105,7 @@ void initialize_class_methods(
 void initialize_object_signals(
     JSCContext *js_context,
     JSCValue *object,
-    struct JSCClassSignal signals[])
+    const struct JSCClassSignal signals[])
 {
   int i = 0;
   struct JSCClassSignal current = signals[i];

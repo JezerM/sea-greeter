@@ -781,7 +781,7 @@ LightDM_initialize(
       js_context, NULL,
       JSC_TYPE_VALUE, 0, NULL);
 
-  struct JSCClassProperty LightDM_properties[] = {
+  const struct JSCClassProperty LightDM_properties[] = {
     {"authentication_user", G_CALLBACK(LightDM_authentication_user_getter_cb), NULL, JSC_TYPE_VALUE},
     {"autologin_guest", G_CALLBACK(LightDM_autologin_guest_getter_cb), NULL, G_TYPE_BOOLEAN},
     {"autologin_timeout", G_CALLBACK(LightDM_autologin_timeout_getter_cb), NULL, G_TYPE_INT},
@@ -817,7 +817,7 @@ LightDM_initialize(
 
     {NULL, NULL, NULL, 0},
   };
-  struct JSCClassMethod LightDM_methods[] = {
+  const struct JSCClassMethod LightDM_methods[] = {
     {"authenticate", G_CALLBACK(LightDM_authenticate_cb), G_TYPE_BOOLEAN},
     {"authenticate_as_guest", G_CALLBACK(LightDM_authenticate_as_guest_cb), G_TYPE_BOOLEAN},
     {"cancel_authentication", G_CALLBACK(LightDM_cancel_authentication_cb), G_TYPE_BOOLEAN},
@@ -832,7 +832,7 @@ LightDM_initialize(
 
     {NULL, NULL, 0},
   };
-  struct JSCClassSignal LightDM_signals[] = {
+  const struct JSCClassSignal LightDM_signals[] = {
     {"authentication_complete"},
     {"autologin_timer_expired"},
     {"show_prompt"},
