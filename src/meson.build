@@ -3,8 +3,10 @@ configure_file(output: 'config.h', configuration: conf)
 web_extension_sources = [
   'extensions.c',
   'lightdm-extension.c',
+  'settings.c',
   'bridge/lightdm-objects.c',
   'bridge/lightdm.c',
+  'bridge/greeter_config.c',
   'bridge/utils.c',
   'bridge/lightdm-signal.c',
 ]
@@ -20,7 +22,7 @@ lightdm = dependency('liblightdm-gobject-1')
 web_extension = library(
   'lightdm-sea-greeter-webext',
   web_extension_sources,
-  dependencies: [webkit2_webext, lightdm],
+  dependencies: [webkit2_webext, lightdm, yaml],
   install: true,
   install_dir: '/usr/lib/sea-greeter/'
 )
