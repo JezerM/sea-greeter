@@ -442,7 +442,9 @@ LightDM_languages_getter_cb(ldm_object *instance)
     g_ptr_array_add(arr, LightDMLanguage_to_JSCValue(context, curr->data));
     curr = curr->next;
   }
-  return jsc_value_new_array_from_garray(context, arr);
+  JSCValue *value = jsc_value_new_array_from_garray(context, arr);
+  g_ptr_array_free(arr, true);
+  return value;
 }
 /**
  * Get the currently active layout for the selected user
@@ -485,7 +487,9 @@ LightDM_layouts_getter_cb(ldm_object *instance)
     g_ptr_array_add(arr, LightDMLayout_to_JSCValue(context, curr->data));
     curr = curr->next;
   }
-  return jsc_value_new_array_from_garray(context, arr);
+  JSCValue *value = jsc_value_new_array_from_garray(context, arr);
+  g_ptr_array_free(arr, true);
+  return value;
 }
 /**
  * Get whether or not the greeter was started as a lock screen
@@ -513,7 +517,9 @@ LightDM_remote_sessions_getter_cb(ldm_object *instance)
     g_ptr_array_add(arr, LightDMSession_to_JSCValue(context, curr->data));
     curr = curr->next;
   }
-  return jsc_value_new_array_from_garray(context, arr);
+  JSCValue *value = jsc_value_new_array_from_garray(context, arr);
+  g_ptr_array_free(arr, true);
+  return value;
 }
 /**
  * Get whether or not the guest account should be selected by default
@@ -554,7 +560,9 @@ LightDM_sessions_getter_cb(ldm_object *instance)
     g_ptr_array_add(arr, LightDMSession_to_JSCValue(context, curr->data));
     curr = curr->next;
   }
-  return jsc_value_new_array_from_garray(context, arr);
+  JSCValue *value = jsc_value_new_array_from_garray(context, arr);
+  g_ptr_array_free(arr, true);
+  return value;
 }
 /**
  * Get the LightDM shared data directory
@@ -605,7 +613,9 @@ LightDM_users_getter_cb(ldm_object *instance)
     g_ptr_array_add(arr, LightDMUser_to_JSCValue(context, curr->data));
     curr = curr->next;
   }
-  return jsc_value_new_array_from_garray(context, arr);
+  JSCValue *value = jsc_value_new_array_from_garray(context, arr);
+  g_ptr_array_free(arr, true);
+  return value;
 }
 
 /* LightDM callbacks */
