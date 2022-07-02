@@ -158,6 +158,9 @@ static void load_greeter(GNode *node) {
   } else if (strcmp(key, "icon_theme") == 0) {
     g_string_free(greeter_config->greeter->icon_theme, true);
     greeter_config->greeter->icon_theme = g_string_new(value);
+  } else if (strcmp(key, "time_language") == 0) {
+    g_string_free(greeter_config->greeter->time_language, true);
+    greeter_config->greeter->time_language = g_string_new(value);
   }
   /*printf("  %s: %s\n", key, (char*) value);*/
   load_greeter(node->next);
@@ -260,5 +263,5 @@ void load_configuration() {
   } while (node != NULL);
   g_node_destroy(cfg);
 
-  logger_debug("Configuration loaded");
+  /*logger_debug("Configuration loaded");*/
 }
