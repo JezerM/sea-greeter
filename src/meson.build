@@ -7,6 +7,7 @@ web_extension_sources = [
   'bridge/lightdm-objects.c',
   'bridge/lightdm.c',
   'bridge/greeter_config.c',
+  'bridge/theme_utils.c',
   'bridge/utils.c',
   'bridge/lightdm-signal.c',
 ]
