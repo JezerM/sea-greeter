@@ -5,6 +5,10 @@ web_extension_sources = [
   'lightdm-extension.c',
   'settings.c',
   'utils/ipc-renderer.c',
+
+  'extension/lightdm.c',
+  'extension/utils.c',
+
   'bridge/lightdm-objects.c',
   #'bridge/lightdm.c',
   'bridge/greeter_config.c',
