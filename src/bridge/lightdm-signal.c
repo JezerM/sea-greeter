@@ -97,7 +97,7 @@ LightDM_signal_emit(
         ldm_object *instance,
         GPtrArray *arguments
 ) {
-    JSCContext *js_context = instance->context;
+    /*JSCContext *js_context = instance->context;*/
     JSCValue *value = instance->value;
     JSCValue *array = jsc_value_object_get_property(
             value,
@@ -166,51 +166,53 @@ LightDM_signal_new(JSCContext *js_context, const gchar *name) {
     return ldm_signal_object;
 }
 
-void
-LightDM_signal_initialize(
-    WebKitScriptWorld *world,
-    WebKitWebPage *web_page,
-    WebKitFrame *web_frame,
-    WebKitWebExtension *extension
-) {
-  (void) web_page;
-  (void) extension;
-
-  JSCContext *js_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
-  LightDM_signal_class = jsc_context_register_class(
-      js_context,
-      "__LightDMSignal",
-      NULL,
-      NULL,
-      NULL
-      );
-  ldm_signal_constructor = jsc_class_add_constructor(
-          LightDM_signal_class, NULL,
-          G_CALLBACK(LightDM_signal_constructor),
-          NULL, NULL,
-          JSC_TYPE_VALUE, 0);
-  jsc_class_add_method_variadic(
-          LightDM_signal_class,
-          "connect",
-          G_CALLBACK(LightDM_signal_connect),
-          NULL,
-          NULL,
-          G_TYPE_NONE
-          );
-  jsc_class_add_method_variadic(
-          LightDM_signal_class,
-          "disconnect",
-          G_CALLBACK(LightDM_signal_disconnect),
-          NULL,
-          NULL,
-          G_TYPE_NONE
-          );
-  jsc_class_add_method_variadic(
-          LightDM_signal_class,
-          "emit",
-          G_CALLBACK(LightDM_signal_emit),
-          NULL,
-          NULL,
-          G_TYPE_NONE
-          );
-}
+/*
+ *void
+ *LightDM_signal_initialize(
+ *    WebKitScriptWorld *world,
+ *    WebKitWebPage *web_page,
+ *    WebKitFrame *web_frame,
+ *    WebKitWebExtension *extension
+ *) {
+ *  (void) web_page;
+ *  (void) extension;
+ *
+ *  JSCContext *js_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
+ *  LightDM_signal_class = jsc_context_register_class(
+ *      js_context,
+ *      "__LightDMSignal",
+ *      NULL,
+ *      NULL,
+ *      NULL
+ *      );
+ *  ldm_signal_constructor = jsc_class_add_constructor(
+ *          LightDM_signal_class, NULL,
+ *          G_CALLBACK(LightDM_signal_constructor),
+ *          NULL, NULL,
+ *          JSC_TYPE_VALUE, 0);
+ *  jsc_class_add_method_variadic(
+ *          LightDM_signal_class,
+ *          "connect",
+ *          G_CALLBACK(LightDM_signal_connect),
+ *          NULL,
+ *          NULL,
+ *          G_TYPE_NONE
+ *          );
+ *  jsc_class_add_method_variadic(
+ *          LightDM_signal_class,
+ *          "disconnect",
+ *          G_CALLBACK(LightDM_signal_disconnect),
+ *          NULL,
+ *          NULL,
+ *          G_TYPE_NONE
+ *          );
+ *  jsc_class_add_method_variadic(
+ *          LightDM_signal_class,
+ *          "emit",
+ *          G_CALLBACK(LightDM_signal_emit),
+ *          NULL,
+ *          NULL,
+ *          G_TYPE_NONE
+ *          );
+ *}
+ */

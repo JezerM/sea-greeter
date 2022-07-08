@@ -11,12 +11,14 @@ LightDM_signal_connect(ldm_object *instance, GPtrArray *arguments);
 JSCValue *
 LightDM_signal_new(JSCContext *js_context, const gchar *name);
 
-void
-LightDM_signal_initialize(
-    WebKitScriptWorld *world,
-    WebKitWebPage *web_page,
-    WebKitFrame *web_frame,
-    WebKitWebExtension *extension
-);
+/*
+ *void
+ *LightDM_signal_initialize(
+ *    WebKitScriptWorld *world,
+ *    WebKitWebPage *web_page,
+ *    WebKitFrame *web_frame,
+ *    WebKitWebExtension *extension
+ *);
+ */
 
 #endif
