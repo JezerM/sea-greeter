@@ -7,6 +7,8 @@
 #include "theme.h"
 #include "logger.h"
 
+#include "bridge/lightdm.h"
+
 static GdkWindow *root_window;
 static GdkDisplay *default_display;
 
@@ -81,24 +83,17 @@ web_view_user_message_received(
     gpointer user_data)
 {
   (void) user_data;
-  /*GApplication *app = g_application_get_default();*/
   const char *name = webkit_user_message_get_name(message);
+
+  /*printf("Got message: '%s'\n", name);*/
 
   if (g_strcmp0(name, "ready-to-show") == 0) {
     gtk_widget_grab_focus(GTK_WIDGET(web_view));
 
     GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(web_view));
     gtk_widget_show_all(window);
-
-    /*GList *windows = gtk_application_get_windows(GTK_APPLICATION(app));*/
-
-    /*GList *curr = windows;*/
-    /*while (curr != NULL) {*/
-      /*GtkWindow *win = curr->data;*/
-      /*gtk_widget_show_all(GTK_WIDGET(win));*/
-      /*curr = curr->next;*/
-    /*}*/
   }
+  handle_lightdm_accessor(web_view, message);
 }
 
 /*
@@ -340,6 +335,8 @@ create_browser(GtkApplication *app, WebKitWebView *web_view) {
 static void
 app_activate_cb(GtkApplication *app, gpointer user_data) {
   (void) user_data;
+
+  LightDM_initialize();
 
   g_signal_connect(webkit_web_context_get_default(),
                    "initialize-web-extensions",
