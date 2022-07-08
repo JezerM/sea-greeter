@@ -9,6 +9,8 @@
 #include <webkit2/webkit-web-extension.h>
 #include <JavaScriptCore/JavaScript.h>
 
+#include "extension/utils.h"
+
 typedef struct {
   gboolean received;
   WebKitUserMessage *message;
@@ -74,4 +76,22 @@ ipc_renderer_send_message(
     GAsyncReadyCallback callback
 ) {
   webkit_web_page_send_message_to_view(web_page, message, NULL, callback, NULL);
+}
+
+WebKitUserMessage *
+ipc_renderer_send_message_sync_with_arguments(
+    WebKitWebPage *web_page,
+    JSCContext *jsc_context,
+    const char *object,
+    const char *target,
+    GPtrArray *arguments
+) {
+  GVariant *parameters = jsc_parameters_to_g_variant_array(
+      jsc_context,
+      target,
+      arguments
+      );
+  WebKitUserMessage *message = webkit_user_message_new(object, parameters);
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync(web_page, message);
+  return reply;
 }

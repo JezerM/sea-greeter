@@ -14,5 +14,13 @@ ipc_renderer_send_message(
     WebKitUserMessage *message,
     GAsyncReadyCallback callback
 );
+WebKitUserMessage *
+ipc_renderer_send_message_sync_with_arguments(
+    WebKitWebPage *web_page,
+    JSCContext *jsc_context,
+    const char *object,
+    const char *target,
+    GPtrArray *arguments
+);
 
 #endif
