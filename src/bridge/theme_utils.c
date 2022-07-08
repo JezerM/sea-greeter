@@ -11,6 +11,9 @@
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
 
+#include "utils/ipc-renderer.h"
+
+static WebKitWebPage *WebPage = NULL;
 ldm_object *ThemeUtils_object = NULL;
 
 static void *
@@ -90,7 +93,7 @@ ThemeUtils_dirlist_cb(
   GPtrArray *files = g_ptr_array_new();
 
   GRegex *regex = g_regex_new(
-      ".+\.(jpe?g|png|gif|bmp|webp)",
+      ".+\\.(jpe?g|png|gif|bmp|webp)",
       G_REGEX_CASELESS,
       0,
       NULL
@@ -246,7 +249,7 @@ ThemeUtils_initialize(
     WebKitFrame *web_frame,
     WebKitWebExtension *extension
 ) {
-  (void) web_page;
+  WebPage = web_page;
   (void) extension;
 
   JSCContext *js_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
