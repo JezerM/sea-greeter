@@ -1,16 +1,11 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 
-#include <webkit2/webkit-web-extension.h>
-#include <JavaScriptCore/JavaScript.h>
-#include <lightdm-gobject-1/lightdm.h>
+#include <jsc/jsc.h>
 
-#include "settings.h"
-#include "logger.h"
-#include "lightdm-extension.h"
 #include "bridge/lightdm-objects.h"
-#include "bridge/utils.h"
 
 JSCClass *LightDM_signal_class;
 JSCValue *ldm_signal_constructor;

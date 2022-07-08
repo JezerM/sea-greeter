@@ -2,15 +2,10 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <webkit2/webkit-web-extension.h>
-#include <JavaScriptCore/JavaScript.h>
+#include <jsc/jsc.h>
 #include <lightdm-gobject-1/lightdm.h>
 
 #include "bridge/utils.h"
-#include "settings.h"
-#include "logger.h"
-#include "lightdm-extension.h"
-#include "lightdm-objects.h"
 
 JSCValue *
 LightDMUser_to_JSCValue(JSCContext *context, LightDMUser *user) {

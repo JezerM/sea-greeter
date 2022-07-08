@@ -2,8 +2,7 @@
 #define BRIDGE_UTILS_H 1
 
 #include <glib-object.h>
-#include <webkit2/webkit-web-extension.h>
-#include <JavaScriptCore/JavaScript.h>
+#include <jsc/jsc.h>
 
 #define JSC_TYPE_VALUE_POST -1101
 

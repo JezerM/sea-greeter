@@ -2,10 +2,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <glib-object.h>
-#include <webkit2/webkit-web-extension.h>
-#include <JavaScriptCore/JavaScript.h>
-
 #include "bridge/utils.h"
 #include "bridge/lightdm-signal.h"
 

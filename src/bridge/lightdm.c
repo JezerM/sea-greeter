@@ -3,22 +3,17 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <webkit2/webkit-web-extension.h>
-#include <JavaScriptCore/JavaScript.h>
+#include <webkit2/webkit2.h>
+#include <jsc/jsc.h>
 #include <lightdm-gobject-1/lightdm.h>
 
-#include "lightdm/greeter.h"
-#include "lightdm/power.h"
 #include "settings.h"
 #include "logger.h"
-#include "lightdm-extension.h"
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
-#include "bridge/lightdm-signal.h"
 
-LightDMGreeter *Greeter;
-LightDMUserList *UserList;
-extern WebKitWebExtension *WebExtension;
+static LightDMGreeter *Greeter;
+static LightDMUserList *UserList;
 extern guint64 page_id;
 
 JSCClass *LightDM_class;

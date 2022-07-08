@@ -3,8 +3,7 @@
 
 #include <glib-object.h>
 #include <webkit2/webkit-web-extension.h>
-#include <JavaScriptCore/JavaScript.h>
-#include "lightdm-extension.h"
+#include "bridge/lightdm-objects.h"
 
 void
 LightDM_signal_connect(ldm_object *instance, GPtrArray *arguments);

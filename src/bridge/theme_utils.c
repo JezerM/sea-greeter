@@ -4,16 +4,12 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include <webkit2/webkit-web-extension.h>
-#include <JavaScriptCore/JavaScript.h>
-#include <lightdm-gobject-1/lightdm.h>
+#include <jsc/jsc.h>
 
 #include "settings.h"
 #include "logger.h"
-#include "lightdm-extension.h"
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
-#include "bridge/lightdm-signal.h"
 
 ldm_object *ThemeUtils_object = NULL;
 
