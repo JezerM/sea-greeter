@@ -16,11 +16,24 @@ static LightDMGreeter *Greeter;
 static LightDMUserList *UserList;
 extern guint64 page_id;
 
-JSCClass *LightDM_class;
-ldm_object *LightDM_object;
-JSCValue *ready_event;
-
 static GString *shared_data_directory;
+
+static JSCVirtualMachine *VirtualMachine = NULL;
+static JSCContext *Context = NULL;
+
+static JSCContext *
+get_global_context() {
+  if (Context == NULL)
+    Context = jsc_context_new_with_virtual_machine(VirtualMachine);
+  return Context;
+}
+
+typedef struct _BridgeObject {
+  GPtrArray *properties;
+  GPtrArray *methods;
+} BridgeObject;
+
+static BridgeObject LightDM_object;
 
 /* LightDM Class definitions */
 
@@ -31,10 +44,9 @@ static GString *shared_data_directory;
  */
 static JSCValue *
 LightDM_authenticate_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
 
   gchar *user = NULL;
   if (arguments->len > 0) {
@@ -45,7 +57,7 @@ LightDM_authenticate_cb(
 
   GError *err = NULL;
   if (!lightdm_greeter_authenticate(Greeter, user, &err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not authenticate");
     g_free(user);
     return jsc_value_new_boolean(context, false);
   }
@@ -57,14 +69,13 @@ LightDM_authenticate_cb(
  */
 static JSCValue *
 LightDM_authenticate_as_guest_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
   (void) arguments;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_greeter_authenticate_as_guest(Greeter, &err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not authenticate as guest");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -74,14 +85,13 @@ LightDM_authenticate_as_guest_cb(
  */
 static JSCValue *
 LightDM_cancel_authentication_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
   (void) arguments;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_greeter_cancel_authentication(Greeter, &err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not cancel authentication");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -91,11 +101,10 @@ LightDM_cancel_authentication_cb(
  */
 static JSCValue *
 LightDM_cancel_autologin_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
   (void) arguments;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   lightdm_greeter_cancel_autologin(Greeter);
   return jsc_value_new_boolean(context, true);
 }
@@ -104,14 +113,13 @@ LightDM_cancel_autologin_cb(
  */
 static JSCValue *
 LightDM_hibernate_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
   (void) arguments;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_hibernate(&err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not hibernate");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -124,10 +132,9 @@ LightDM_hibernate_cb(
  */
 static JSCValue *
 LightDM_respond_cb(
-    ldm_object *instance,
     GPtrArray *arguments)
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
 
   gchar *response = NULL;
   if (arguments->len == 0) return jsc_value_new_boolean(context, false);
@@ -136,7 +143,7 @@ LightDM_respond_cb(
 
   GError *err = NULL;
   if (!lightdm_greeter_respond(Greeter, response, &err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not provide a response");
     g_free(response);
     return jsc_value_new_boolean(context, false);
   }
@@ -148,14 +155,13 @@ LightDM_respond_cb(
  */
 static JSCValue *
 LightDM_restart_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
   (void) arguments;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_restart(&err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not restart");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -165,10 +171,9 @@ LightDM_restart_cb(
  */
 static JSCValue *
 LightDM_set_language_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
 
   gchar *language = NULL;
   if (arguments->len == 0) return jsc_value_new_boolean(context, false);
@@ -177,7 +182,7 @@ LightDM_set_language_cb(
 
   GError *err = NULL;
   if (!lightdm_greeter_set_language(Greeter, language, &err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not set language");
     g_free(language);
     return jsc_value_new_boolean(context, false);
   }
@@ -189,14 +194,13 @@ LightDM_set_language_cb(
  */
 static JSCValue *
 LightDM_shutdown_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
   (void) arguments;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_shutdown(&err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not shutdown");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -206,10 +210,9 @@ LightDM_shutdown_cb(
  */
 static JSCValue *
 LightDM_start_session_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
 
   gchar *session = NULL;
   if (arguments->len == 0) return jsc_value_new_boolean(context, false);
@@ -218,7 +221,7 @@ LightDM_start_session_cb(
 
   GError *err = NULL;
   if (!lightdm_greeter_start_session_sync(Greeter, session, &err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not start session");
     g_free(session);
     return jsc_value_new_boolean(context, false);
   }
@@ -231,14 +234,13 @@ LightDM_start_session_cb(
  */
 static JSCValue *
 LightDM_suspend_cb(
-    ldm_object *instance,
     GPtrArray *arguments
 ) {
   (void) arguments;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_suspend(&err)) {
-    logger_error(err->message);
+    logger_error(err != NULL ? err->message : "Could not suspend");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -252,9 +254,9 @@ LightDM_suspend_cb(
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_authentication_user_getter_cb(ldm_object *instance)
+LightDM_authentication_user_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   const gchar *user = lightdm_greeter_get_authentication_user(Greeter);
   if (user == NULL)
     return jsc_value_new_null(context);
@@ -265,9 +267,9 @@ LightDM_authentication_user_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_autologin_guest_getter_cb(ldm_object *instance)
+LightDM_autologin_guest_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_autologin_guest_hint(Greeter);
   return jsc_value_new_boolean(context, value);
 }
@@ -276,9 +278,9 @@ LightDM_autologin_guest_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_autologin_timeout_getter_cb(ldm_object *instance)
+LightDM_autologin_timeout_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gint value = lightdm_greeter_get_autologin_timeout_hint(Greeter);
   return jsc_value_new_number(context, value);
 }
@@ -287,9 +289,9 @@ LightDM_autologin_timeout_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_autologin_user_getter_cb(ldm_object *instance)
+LightDM_autologin_user_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   const gchar *value = lightdm_greeter_get_autologin_user_hint(Greeter);
   if (value == NULL)
     return jsc_value_new_null(context);
@@ -300,9 +302,9 @@ LightDM_autologin_user_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_can_hibernate_getter_cb(ldm_object *instance)
+LightDM_can_hibernate_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_get_can_hibernate();
   return jsc_value_new_boolean(context, value);
 }
@@ -311,9 +313,9 @@ LightDM_can_hibernate_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_can_restart_getter_cb(ldm_object *instance)
+LightDM_can_restart_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_get_can_restart();
   return jsc_value_new_boolean(context, value);
 }
@@ -322,9 +324,9 @@ LightDM_can_restart_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_can_shutdown_getter_cb(ldm_object *instance)
+LightDM_can_shutdown_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_get_can_shutdown();
   return jsc_value_new_boolean(context, value);
 }
@@ -333,20 +335,33 @@ LightDM_can_shutdown_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_can_suspend_getter_cb(ldm_object *instance)
+LightDM_can_suspend_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_get_can_suspend();
   return jsc_value_new_boolean(context, value);
+}
+static int brightness = 85;
+static JSCValue *
+LightDM_brightness_getter_cb()
+{
+  JSCContext *context = get_global_context();
+  return jsc_value_new_number(context, brightness);
+}
+static void *
+LightDM_brightness_setter_cb(JSCValue *object)
+{
+  brightness = jsc_value_to_int32(object);
+  return NULL;
 }
 /**
  * Get the name of the default session
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_default_session_getter_cb(ldm_object *instance)
+LightDM_default_session_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   const gchar *session = lightdm_greeter_get_default_session_hint(Greeter);
   if (session == NULL)
     return jsc_value_new_null(context);
@@ -357,9 +372,9 @@ LightDM_default_session_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_has_guest_account_getter_cb(ldm_object *instance)
+LightDM_has_guest_account_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean has_guest_account = lightdm_greeter_get_has_guest_account_hint(Greeter);
   return jsc_value_new_boolean(context, has_guest_account);
 }
@@ -368,9 +383,9 @@ LightDM_has_guest_account_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_hide_users_hint_getter_cb(ldm_object *instance)
+LightDM_hide_users_hint_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean hide_users = lightdm_greeter_get_hide_users_hint(Greeter);
   return jsc_value_new_boolean(context, hide_users);
 }
@@ -379,9 +394,9 @@ LightDM_hide_users_hint_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_hostname_getter_cb(ldm_object *instance)
+LightDM_hostname_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   const gchar *hostname = lightdm_get_hostname();
   if (hostname == NULL)
     return jsc_value_new_null(context);
@@ -392,9 +407,9 @@ LightDM_hostname_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_in_authentication_getter_cb(ldm_object *instance)
+LightDM_in_authentication_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_in_authentication(Greeter);
   return jsc_value_new_boolean(context, value);
 }
@@ -403,9 +418,9 @@ LightDM_in_authentication_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_is_authenticated_getter_cb(ldm_object *instance)
+LightDM_is_authenticated_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_is_authenticated(Greeter);
   return jsc_value_new_boolean(context, value);
 }
@@ -414,9 +429,9 @@ LightDM_is_authenticated_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_language_getter_cb(ldm_object *instance)
+LightDM_language_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   LightDMLanguage *language = lightdm_get_language();
 
   JSCValue *object = LightDMLanguage_to_JSCValue(context, language);
@@ -427,9 +442,9 @@ LightDM_language_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_languages_getter_cb(ldm_object *instance)
+LightDM_languages_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GList *languages = lightdm_get_languages();
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = languages;
@@ -446,9 +461,9 @@ LightDM_languages_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_layout_getter_cb(ldm_object *instance)
+LightDM_layout_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   LightDMLayout *layout = lightdm_get_layout();
 
   JSCValue *object = LightDMLayout_to_JSCValue(context, layout);
@@ -459,10 +474,10 @@ LightDM_layout_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static void *
-LightDM_layout_setter_cb(ldm_object *instance, JSCValue *object)
+LightDM_layout_setter_cb(JSCValue *object)
 {
   lightdm_get_layout();
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   LightDMLayout *layout = JSCValue_to_LightDMLayout(context, object);
   lightdm_set_layout(layout);
   return NULL;
@@ -472,9 +487,9 @@ LightDM_layout_setter_cb(ldm_object *instance, JSCValue *object)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_layouts_getter_cb(ldm_object *instance)
+LightDM_layouts_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GList *layouts = lightdm_get_layouts();
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = layouts;
@@ -491,9 +506,9 @@ LightDM_layouts_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_lock_hint_getter_cb(ldm_object *instance)
+LightDM_lock_hint_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_lock_hint(Greeter);
   return jsc_value_new_boolean(context, value);
 }
@@ -502,9 +517,9 @@ LightDM_lock_hint_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_remote_sessions_getter_cb(ldm_object *instance)
+LightDM_remote_sessions_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GList *sessions = lightdm_get_remote_sessions();
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = sessions;
@@ -521,9 +536,9 @@ LightDM_remote_sessions_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_select_guest_hint_getter_cb(ldm_object *instance)
+LightDM_select_guest_hint_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_select_guest_hint(Greeter);
   return jsc_value_new_boolean(context, value);
 }
@@ -532,9 +547,9 @@ LightDM_select_guest_hint_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_select_user_hint_getter_cb(ldm_object *instance)
+LightDM_select_user_hint_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   const gchar *value = lightdm_greeter_get_select_user_hint(Greeter);
   if (value == NULL)
     return jsc_value_new_null(context);
@@ -545,9 +560,9 @@ LightDM_select_user_hint_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_sessions_getter_cb(ldm_object *instance)
+LightDM_sessions_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GList *sessions = lightdm_get_sessions();
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = sessions;
@@ -564,9 +579,9 @@ LightDM_sessions_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_shared_data_directory_getter_cb(ldm_object *instance)
+LightDM_shared_data_directory_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   if (shared_data_directory->len == 0 || shared_data_directory->str == NULL)
     return jsc_value_new_null(context);
   return jsc_value_new_string(context, shared_data_directory->str);
@@ -576,9 +591,9 @@ LightDM_shared_data_directory_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_show_manual_login_hint_getter_cb(ldm_object *instance)
+LightDM_show_manual_login_hint_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_show_manual_login_hint(Greeter);
   return jsc_value_new_boolean(context, value);
 }
@@ -587,9 +602,9 @@ LightDM_show_manual_login_hint_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_show_remote_login_hint_getter_cb(ldm_object *instance)
+LightDM_show_remote_login_hint_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_show_remote_login_hint(Greeter);
   return jsc_value_new_boolean(context, value);
 }
@@ -598,9 +613,9 @@ LightDM_show_remote_login_hint_getter_cb(ldm_object *instance)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_users_getter_cb(ldm_object *instance)
+LightDM_users_getter_cb()
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   GList *users = lightdm_user_list_get_users(UserList);
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = users;
@@ -615,119 +630,129 @@ LightDM_users_getter_cb(ldm_object *instance)
 
 /* LightDM callbacks */
 
-static void
-authentication_complete_cb(
-    LightDMGreeter *greeter,
-    WebKitWebExtension *extension
-) {
-  (void) greeter;
-  (void) extension;
-  JSCValue *value = LightDM_object->value;
-
-  JSCValue *signal = jsc_value_object_get_property(value, "authentication_complete");
-  (void) jsc_value_object_invoke_method(
-      signal,
-      "emit",
-      G_TYPE_NONE
-      );
-}
-static void
-autologin_timer_expired_cb(
-    LightDMGreeter *greeter,
-    WebKitWebExtension *extension
-) {
-  (void) greeter;
-  (void) extension;
-  JSCValue *value = LightDM_object->value;
-
-  JSCValue *signal = jsc_value_object_get_property(value, "autologin_timer_expired");
-  (void) jsc_value_object_invoke_method(
-      signal,
-      "emit",
-      G_TYPE_NONE
-      );
-}
-static void show_prompt_cb(
-    LightDMGreeter *greeter,
-    const gchar *text,
-    LightDMPromptType type,
-    WebKitWebExtension *extension)
-{
-  (void) greeter;
-  (void) extension;
-  JSCValue *value = LightDM_object->value;
-
-  JSCValue *signal = jsc_value_object_get_property(value, "show_prompt");
-  (void) jsc_value_object_invoke_method(
-      signal,
-      "emit",
-      G_TYPE_STRING,
-      text,
-      G_TYPE_INT,
-      type,
-      G_TYPE_NONE
-      );
-}
-static void show_message_cb(
-    LightDMGreeter *greeter,
-    const gchar *text,
-    LightDMMessageType type,
-    WebKitWebExtension *extension)
-{
-  (void) greeter;
-  (void) extension;
-  JSCValue *value = LightDM_object->value;
-
-  JSCValue *signal = jsc_value_object_get_property(value, "show_message");
-  (void) jsc_value_object_invoke_method(
-      signal,
-      "emit",
-      G_TYPE_STRING,
-      text,
-      G_TYPE_INT,
-      type,
-      G_TYPE_NONE
-      );
-}
+/*
+ *static void
+ *authentication_complete_cb(
+ *    LightDMGreeter *greeter,
+ *    WebKitWebExtension *extension
+ *) {
+ *  (void) greeter;
+ *  (void) extension;
+ *  JSCValue *value = LightDM_object->value;
+ *
+ *  JSCValue *signal = jsc_value_object_get_property(value, "authentication_complete");
+ *  (void) jsc_value_object_invoke_method(
+ *      signal,
+ *      "emit",
+ *      G_TYPE_NONE
+ *      );
+ *}
+ */
+/*
+ *static void
+ *autologin_timer_expired_cb(
+ *    LightDMGreeter *greeter,
+ *    WebKitWebExtension *extension
+ *) {
+ *  (void) greeter;
+ *  (void) extension;
+ *  JSCValue *value = LightDM_object->value;
+ *
+ *  JSCValue *signal = jsc_value_object_get_property(value, "autologin_timer_expired");
+ *  (void) jsc_value_object_invoke_method(
+ *      signal,
+ *      "emit",
+ *      G_TYPE_NONE
+ *      );
+ *}
+ */
+/*
+ *static void show_prompt_cb(
+ *    LightDMGreeter *greeter,
+ *    const gchar *text,
+ *    LightDMPromptType type,
+ *    WebKitWebExtension *extension)
+ *{
+ *  (void) greeter;
+ *  (void) extension;
+ *  JSCValue *value = LightDM_object->value;
+ *
+ *  JSCValue *signal = jsc_value_object_get_property(value, "show_prompt");
+ *  (void) jsc_value_object_invoke_method(
+ *      signal,
+ *      "emit",
+ *      G_TYPE_STRING,
+ *      text,
+ *      G_TYPE_INT,
+ *      type,
+ *      G_TYPE_NONE
+ *      );
+ *}
+ */
+/*
+ *static void show_message_cb(
+ *    LightDMGreeter *greeter,
+ *    const gchar *text,
+ *    LightDMMessageType type,
+ *    WebKitWebExtension *extension)
+ *{
+ *  (void) greeter;
+ *  (void) extension;
+ *  JSCValue *value = LightDM_object->value;
+ *
+ *  JSCValue *signal = jsc_value_object_get_property(value, "show_message");
+ *  (void) jsc_value_object_invoke_method(
+ *      signal,
+ *      "emit",
+ *      G_TYPE_STRING,
+ *      text,
+ *      G_TYPE_INT,
+ *      type,
+ *      G_TYPE_NONE
+ *      );
+ *}
+ */
 
 /**
  * Connect LightDM signals to their callbacks
  */
 void LightDM_connect_signals() {
-  g_signal_connect(
-    Greeter,
-    "authentication-complete",
-    G_CALLBACK(authentication_complete_cb),
-    WebExtension
-  );
-  g_signal_connect(
-    Greeter,
-    "autologin-timer-expired",
-    G_CALLBACK(autologin_timer_expired_cb),
-    WebExtension
-  );
-  g_signal_connect(
-    Greeter,
-    "show-prompt",
-    G_CALLBACK(show_prompt_cb),
-    WebExtension
-  );
-  g_signal_connect(
-    Greeter,
-    "show-message",
-    G_CALLBACK(show_message_cb),
-    WebExtension
-  );
+  /*
+   *g_signal_connect(
+   *  Greeter,
+   *  "authentication-complete",
+   *  G_CALLBACK(authentication_complete_cb),
+   *  WebExtension
+   *);
+   *g_signal_connect(
+   *  Greeter,
+   *  "autologin-timer-expired",
+   *  G_CALLBACK(autologin_timer_expired_cb),
+   *  WebExtension
+   *);
+   *g_signal_connect(
+   *  Greeter,
+   *  "show-prompt",
+   *  G_CALLBACK(show_prompt_cb),
+   *  WebExtension
+   *);
+   *g_signal_connect(
+   *  Greeter,
+   *  "show-message",
+   *  G_CALLBACK(show_message_cb),
+   *  WebExtension
+   *);
+   */
 }
 
 /**
  * LightDM Class constructor, should be called only once in sea-greeter's life
  */
-static JSCValue*
-LightDM_constructor(JSCContext *context) {
+static void
+LightDM_constructor() {
   GError *err = NULL;
 
-  LightDM_connect_signals();
+  /*LightDM_connect_signals();*/
 
   gboolean connected = lightdm_greeter_connect_to_daemon_sync(Greeter, &err);
   if (!connected && err) {
@@ -752,70 +777,172 @@ LightDM_constructor(JSCContext *context) {
   }
 
   logger_debug("LightDM API connected");
+}
 
-  return jsc_value_new_null(context);
+/*static void*/
+/*ready_event_loaded(WebKitWebPage *web_page, JSCContext *context) {*/
+  /*(void) web_page;*/
+  /*JSCValue *global_object = jsc_context_get_global_object(context);*/
+
+  /*JSCValue *dispatch_event = jsc_value_object_get_property(global_object, "dispatchEvent");*/
+  /*JSCValue *parameters[] = {*/
+    /*ready_event,*/
+    /*NULL*/
+  /*};*/
+  /*(void) jsc_value_function_callv(dispatch_event, 1, parameters);*/
+/*}*/
+
+static char *
+g_variant_to_string(GVariant *variant) {
+  if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
+    return NULL;
+  const gchar *value = g_variant_get_string(variant, NULL);
+  return g_strdup(value);
+}
+static GPtrArray *
+jsc_array_to_g_ptr_array(
+    JSCValue *jsc_array
+) {
+  if (!jsc_value_is_array(jsc_array)) {
+    return NULL;
+  }
+  GPtrArray *array = g_ptr_array_new();
+  JSCValue *jsc_array_length = jsc_value_object_get_property(jsc_array, "length");
+
+  int length = jsc_value_to_int32(jsc_array_length);
+
+  for (int i = 0; i < length; i++) {
+    g_ptr_array_add(array, jsc_value_object_get_property_at_index(jsc_array, i));
+  }
+
+  return array;
 }
 
 static void
-ready_event_loaded(WebKitWebPage *web_page, JSCContext *context) {
-  (void) web_page;
-  JSCValue *global_object = jsc_context_get_global_object(context);
+handle_lightdm_property(
+    WebKitUserMessage *message,
+    const gchar *method,
+    GPtrArray *parameters
+) {
+  (void) parameters;
 
-  JSCValue *dispatch_event = jsc_value_object_get_property(global_object, "dispatchEvent");
-  JSCValue *parameters[] = {
-    ready_event,
-    NULL
-  };
-  (void) jsc_value_function_callv(dispatch_event, 1, parameters);
+  int i = 0;
+  struct JSCClassProperty *current = LightDM_object.properties->pdata[i];
+  while (current->name != NULL) {
+    /*printf("Current: %d - %s\n", i, current->name);*/
+    if (g_strcmp0(current->name, method) == 0) {
+
+      if (parameters->len > 0) {
+        JSCValue *param = parameters->pdata[0];
+        ((void (*)(JSCValue*))current->setter)(param);
+        WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
+        webkit_user_message_send_reply(message, empty_msg);
+        break;
+      }
+
+      JSCValue *jsc_value = ((JSCValue* (*)(void))current->getter)();
+      const gchar *valjson_value = jsc_value_to_json(jsc_value, 0);
+      /*printf("JSON value: '%s'\n", json_value);*/
+
+      GVariant *value = g_variant_new_string(valjson_value);
+      WebKitUserMessage *reply = webkit_user_message_new("reply", value);
+
+      webkit_user_message_send_reply(message, reply);
+      break;
+    }
+    i++;
+    current = LightDM_object.properties->pdata[i];
+  }
+}
+static void
+handle_lightdm_method(
+    WebKitUserMessage *message,
+    const gchar *method,
+    GPtrArray *parameters
+) {
+
+  int i = 0;
+  struct JSCClassMethod *current = LightDM_object.methods->pdata[i];
+  while (current->name != NULL) {
+    /*printf("Current: %d - %s\n", i, current->name);*/
+    if (g_strcmp0(current->name, method) == 0) {
+      JSCValue *jsc_value = ((JSCValue* (*)(GPtrArray*))current->callback)(parameters);
+      const gchar *json_value = jsc_value_to_json(jsc_value, 0);
+      printf("JSON value: '%s'\n", json_value);
+
+      GVariant *value = g_variant_new_string(json_value);
+      WebKitUserMessage *reply = webkit_user_message_new("reply", value);
+
+      webkit_user_message_send_reply(message, reply);
+      break;
+    }
+    i++;
+    current = LightDM_object.methods->pdata[i];
+  }
+}
+
+void
+handle_lightdm_accessor(
+    WebKitWebView *web_view,
+    WebKitUserMessage *message
+) {
+  (void) web_view;
+  const char *name = webkit_user_message_get_name(message);
+  if (g_strcmp0(name, "lightdm") != 0) return;
+
+  WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
+  GVariant *msg_param = webkit_user_message_get_parameters(message);
+
+  if (!g_variant_is_of_type(msg_param, G_VARIANT_TYPE_ARRAY)) {
+    webkit_user_message_send_reply(message, empty_msg);
+    return;
+  }
+  int parameters_length = g_variant_n_children(msg_param);
+  if (parameters_length == 0 || parameters_length > 2) {
+    webkit_user_message_send_reply(message, empty_msg);
+    return;
+  }
+
+  JSCContext *context = get_global_context();
+  char *method = NULL;
+  JSCValue *parameters = NULL;
+
+  GVariant *method_var = g_variant_get_child_value(msg_param, 0);
+  GVariant *params_var = g_variant_get_child_value(msg_param, 1);
+
+  method = g_variant_to_string(method_var);
+  const gchar *json_params = g_variant_to_string(params_var);
+  parameters = jsc_value_new_from_json(context, json_params);
+  printf("Handling: '%s'\n", method);
+  printf("JSON params: '%s'\n", json_params);
+
+  if (method == NULL) {
+    webkit_user_message_send_reply(message, empty_msg);
+    /*g_ptr_array_free(parameters, true);*/
+    return;
+  }
+
+  GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
+
+  handle_lightdm_property(message, method, g_array);
+  handle_lightdm_method(message, method, g_array);
+
+  g_free(method);
+  /*g_ptr_array_free(parameters, true);*/
 }
 
 /**
  * Initialize the LightDM environment
  */
 void
-LightDM_initialize(
-    WebKitScriptWorld *world,
-    WebKitWebPage *web_page,
-    WebKitFrame *web_frame,
-    WebKitWebExtension *extension
-) {
-  (void) extension;
-
-  JSCContext *js_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
-  JSCValue *global_object = jsc_context_get_global_object(js_context);
-
-  if (Greeter != NULL) {
-    jsc_value_object_set_property(
-        global_object,
-        "lightdm",
-        LightDM_object->value
-        );
-
-    jsc_value_object_set_property(
-        global_object,
-        "_ready_event",
-        ready_event
-        );
-    return;
-  }
+LightDM_initialize() {
 
   UserList = lightdm_user_list_get_instance();
   Greeter = lightdm_greeter_new();
 
-  LightDM_class = jsc_context_register_class(
-      js_context,
-      "__LightDMGreeter",
-      NULL,
-      NULL,
-      NULL
-      );
-  JSCValue *ldm_constructor = jsc_class_add_constructor(
-      LightDM_class, NULL,
-      G_CALLBACK(LightDM_constructor),
-      js_context, NULL,
-      JSC_TYPE_VALUE, 0, NULL);
+  LightDM_constructor();
 
-  const struct JSCClassProperty LightDM_properties[] = {
+  struct JSCClassProperty LightDM_properties[] = {
     {"authentication_user", G_CALLBACK(LightDM_authentication_user_getter_cb), NULL, JSC_TYPE_VALUE},
     {"autologin_guest", G_CALLBACK(LightDM_autologin_guest_getter_cb), NULL, G_TYPE_BOOLEAN},
     {"autologin_timeout", G_CALLBACK(LightDM_autologin_timeout_getter_cb), NULL, G_TYPE_INT},
@@ -825,6 +952,8 @@ LightDM_initialize(
     {"can_restart", G_CALLBACK(LightDM_can_restart_getter_cb), NULL, G_TYPE_BOOLEAN},
     {"can_shutdown", G_CALLBACK(LightDM_can_shutdown_getter_cb), NULL, G_TYPE_BOOLEAN},
     {"can_suspend", G_CALLBACK(LightDM_can_suspend_getter_cb), NULL, G_TYPE_BOOLEAN},
+
+    {"brightness", G_CALLBACK(LightDM_brightness_getter_cb), G_CALLBACK(LightDM_brightness_setter_cb), JSC_TYPE_VALUE},
 
     {"default_session", G_CALLBACK(LightDM_default_session_getter_cb), NULL, JSC_TYPE_VALUE},
     {"has_guest_account", G_CALLBACK(LightDM_has_guest_account_getter_cb), NULL, G_TYPE_BOOLEAN},
@@ -851,7 +980,7 @@ LightDM_initialize(
 
     {NULL, NULL, NULL, 0},
   };
-  const struct JSCClassMethod LightDM_methods[] = {
+  struct JSCClassMethod LightDM_methods[] = {
     {"authenticate", G_CALLBACK(LightDM_authenticate_cb), G_TYPE_BOOLEAN},
     {"authenticate_as_guest", G_CALLBACK(LightDM_authenticate_as_guest_cb), G_TYPE_BOOLEAN},
     {"cancel_authentication", G_CALLBACK(LightDM_cancel_authentication_cb), G_TYPE_BOOLEAN},
@@ -874,40 +1003,27 @@ LightDM_initialize(
     {NULL},
   };
 
-  initialize_class_properties(LightDM_class, LightDM_properties);
-  initialize_class_methods(LightDM_class, LightDM_methods);
+  GPtrArray *ldm_properties = g_ptr_array_new_full(G_N_ELEMENTS(LightDM_properties), NULL);
+  for (gsize i = 0; i < G_N_ELEMENTS(LightDM_properties); i++) {
+    struct JSCClassProperty *prop = malloc(sizeof *prop);
+    prop->name = LightDM_properties[i].name;
+    prop->property_type = LightDM_properties[i].property_type;
+    prop->getter = LightDM_properties[i].getter;
+    prop->setter = LightDM_properties[i].setter;
+    g_ptr_array_add(ldm_properties, prop);
+  }
 
-  JSCValue *value = jsc_value_constructor_callv(ldm_constructor, 0, NULL);
-  LightDM_object = malloc(sizeof *LightDM_object);
-  LightDM_object->value = value;
-  LightDM_object->context = js_context;
+  GPtrArray *ldm_methods = g_ptr_array_new_full(G_N_ELEMENTS(LightDM_methods), NULL);
+  for (gsize i = 0; i < G_N_ELEMENTS(LightDM_methods); i++) {
+    struct JSCClassMethod *method = malloc(sizeof *method);
+    method->name = LightDM_methods[i].name;
+    method->return_type = LightDM_methods[i].return_type;
+    method->callback = LightDM_methods[i].callback;
+    g_ptr_array_add(ldm_methods, method);
+  }
 
-  JSCValue *ldm_greeter_object = jsc_value_new_object(js_context, LightDM_object, LightDM_class);
+  VirtualMachine = jsc_virtual_machine_new();
 
-  initialize_object_signals(js_context, ldm_greeter_object, LightDM_signals);
-
-  LightDM_object->value = ldm_greeter_object;
-
-  jsc_value_object_set_property(
-      global_object,
-      "lightdm",
-      ldm_greeter_object
-      );
-
-  JSCValue *event_class = jsc_value_object_get_property(global_object, "Event");
-  JSCValue *event_parameters[] = {
-    jsc_value_new_string(js_context, "GreeterReady"),
-    NULL
-  };
-  ready_event = jsc_value_constructor_callv(event_class, 1, event_parameters);
-
-  jsc_value_object_set_property(
-      global_object,
-      "_ready_event",
-      ready_event
-      );
-
-  g_signal_connect(web_page, "document-loaded",
-      G_CALLBACK(ready_event_loaded),
-      js_context);
+  LightDM_object.properties = ldm_properties;
+  LightDM_object.methods = ldm_methods;
 }

@@ -6,7 +6,7 @@ web_extension_sources = [
   'settings.c',
   'utils/ipc-renderer.c',
   'bridge/lightdm-objects.c',
-  'bridge/lightdm.c',
+  #'bridge/lightdm.c',
   'bridge/greeter_config.c',
   'bridge/theme_utils.c',
   'bridge/utils.c',
@@ -29,11 +29,20 @@ web_extension = library(
   install_dir: '/usr/lib/sea-greeter/'
 )
 
-greeter_sources = ['greeter.c', 'settings.c', 'theme.c', ]
+greeter_sources = [
+  'greeter.c',
+  'settings.c', 
+  'theme.c',
+
+  'bridge/lightdm.c',
+  'bridge/utils.c',
+  'bridge/lightdm-signal.c',
+  'bridge/lightdm-objects.c',
+]
 
 greeter = executable(
   'sea-greeter',
   greeter_sources,
-  dependencies: [webkit2, gtk3, yaml, glib],
+  dependencies: [webkit2, gtk3, yaml, glib, lightdm],
   install: true,
 )

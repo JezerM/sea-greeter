@@ -1,14 +1,14 @@
 #ifndef BRIDGE_LIGHTDM_H
 #define BRIDGE_LIGHTDM_H 1
 
-#include <webkit2/webkit-web-extension.h>
+#include <webkit2/webkit2.h>
 #include <lightdm-gobject-1/lightdm.h>
 
 void
-LightDM_initialize(
-    WebKitScriptWorld *world,
-    WebKitWebPage *web_page,
-    WebKitFrame *web_frame,
-    WebKitWebExtension *extension);
+LightDM_initialize();
+void
+handle_lightdm_accessor(
+    WebKitWebView *web_view,
+    WebKitUserMessage *message);
 
 #endif
