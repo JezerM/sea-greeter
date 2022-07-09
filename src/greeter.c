@@ -14,6 +14,13 @@ static GdkDisplay *default_display;
 
 extern GreeterConfig *greeter_config;
 
+typedef struct _GtkBrowser {
+  WebKitWebView *web_view;
+  GtkApplicationWindow *window;
+} GtkBrowser;
+
+GPtrArray *greeter_browsers = NULL;
+
 static void
 destroy_window_cb(GtkWidget* widget, GtkWidget* window) {
   (void) widget;
@@ -38,9 +45,11 @@ show_window_cb(GtkWidget* widget, GtkWidget* window) {
  * Destroy window when web-view is closed
  */
 static gboolean
-close_web_view_cb(WebKitWebView* web_view, GtkWidget* window) {
+close_web_view_cb(WebKitWebView* web_view, GtkBrowser *browser) {
   (void) web_view;
-  gtk_widget_destroy(window);
+  gtk_widget_destroy(GTK_WIDGET(browser->window));
+  g_ptr_array_remove(greeter_browsers, browser);
+  g_free(browser);
   return TRUE;
 }
 
@@ -92,6 +101,7 @@ web_view_user_message_received(
 
     GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(web_view));
     gtk_widget_show_all(window);
+    return;
   }
   handle_lightdm_accessor(web_view, message);
 }
@@ -100,21 +110,13 @@ web_view_user_message_received(
  * Set keybinding accelerators
  */
 static void
-set_keybindings(GtkApplicationWindow *window) {
-  GVariant *window_id = g_variant_new_uint32(
-      gtk_application_window_get_id(window)
-      );
-  gchar *toggle_inspector_name = g_action_print_detailed_name(
-      "win.toggle-inspector",
-      window_id
-      );
-
+set_keybindings() {
   const struct accelerator {
     const gchar *action;
     const gchar *accelerators[9];
   } accels[] = {
     { "app.quit", { "<Control>Q", NULL } },
-    { toggle_inspector_name, { "<shift><Primary>I", "F12", NULL } },
+    { "win.toggle-inspector", { "<shift><Primary>I", "F12", NULL } },
     { NULL, { NULL } }
   };
 
@@ -159,14 +161,13 @@ toggle_inspector_cb(GSimpleAction *action, GVariant *parameter, gpointer user_da
   (void) user_data;
   GApplication *app = g_application_get_default();
 
-  guint32 window_id = g_variant_get_uint32(parameter);
   GtkApplicationWindow *window_origin = NULL;
 
   GList *windows = gtk_application_get_windows(GTK_APPLICATION(app));
 
   GList *curr = windows;
   while (curr != NULL) {
-    if (gtk_application_window_get_id(curr->data) == window_id) {
+    if (gtk_window_has_toplevel_focus(curr->data)) {
       window_origin = curr->data;
       break;
     }
@@ -185,7 +186,7 @@ toggle_inspector_cb(GSimpleAction *action, GVariant *parameter, gpointer user_da
   if (!WEBKIT_IS_WEB_VIEW(web_view))
     return;
 
-  WebKitWebInspector *inspector = webkit_web_view_get_inspector (web_view);
+  WebKitWebInspector *inspector = webkit_web_view_get_inspector(web_view);
   WebKitWebViewBase *inspector_web_view = webkit_web_inspector_get_web_view(inspector);
 
   if (inspector_web_view != NULL) {
@@ -206,7 +207,7 @@ initialize_actions (GtkApplication *app)
     { "quit", app_quit_cb, NULL, NULL, NULL , {0}},
   };
   static const GActionEntry win_entries[] = {
-    { "toggle-inspector", toggle_inspector_cb, "u", NULL, NULL , {0}},
+    { "toggle-inspector", toggle_inspector_cb, NULL, NULL, NULL , {0}},
   };
 
   g_action_map_add_action_entries(
@@ -235,7 +236,7 @@ initialize_actions (GtkApplication *app)
  * Create menu bar Model
  */
 static GMenu *
-initialize_menu_bar(GtkApplicationWindow *window) {
+initialize_menu_bar() {
   GMenu *menu_model = g_menu_new();
 
   GMenu *file_model = g_menu_new();
@@ -250,14 +251,7 @@ initialize_menu_bar(GtkApplicationWindow *window) {
 
   GMenu *view_model = g_menu_new();
 
-  GMenuItem *item_toggle_inspector = g_menu_item_new("Toggle Developer Tools", NULL);
-  g_menu_item_set_action_and_target_value(
-      item_toggle_inspector,
-      "win.toggle-inspector",
-      g_variant_new_uint32(gtk_application_window_get_id(window))
-      );
-  g_menu_append_item(view_model, item_toggle_inspector);
-  /*g_menu_append(view_model, "Toggle Developer Tools", "win.toggle-inspector");*/
+  g_menu_append(view_model, "Toggle Developer Tools", "win.toggle-inspector");
   g_menu_append_submenu(menu_model, "View", G_MENU_MODEL(view_model));
 
   g_object_unref(file_model);
@@ -288,7 +282,7 @@ static WebKitWebView *
 create_web_view() {
   WebKitWebView *web_view = WEBKIT_WEB_VIEW(webkit_web_view_new());
 
-  WebKitSettings *settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW(web_view));
+  WebKitSettings *settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(web_view));
   g_object_set(G_OBJECT(settings), "allow-universal-access-from-file-urls", TRUE, NULL);
   g_object_set(G_OBJECT(settings), "allow-file-access-from-file-urls", TRUE, NULL);
   g_object_set(G_OBJECT(settings), "enable-page-cache", TRUE, NULL);
@@ -309,7 +303,7 @@ create_web_view() {
   return web_view;
 }
 
-static GtkApplicationWindow*
+static GtkBrowser*
 create_browser(GtkApplication *app, WebKitWebView *web_view) {
   GtkApplicationWindow *window = GTK_APPLICATION_WINDOW(gtk_application_window_new(app));
   gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
@@ -318,14 +312,21 @@ create_browser(GtkApplication *app, WebKitWebView *web_view) {
   g_signal_connect(window, "show", G_CALLBACK(show_window_cb), NULL);
 
   GtkWidget *center_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  GtkWidget *menu_bar = gtk_menu_bar_new_from_model(G_MENU_MODEL(initialize_menu_bar(window)));
+  GtkWidget *menu_bar = gtk_menu_bar_new_from_model(G_MENU_MODEL(initialize_menu_bar()));
 
   gtk_box_pack_start(GTK_BOX(center_vbox), GTK_WIDGET(menu_bar), false, false, 0);
   gtk_box_pack_end(GTK_BOX(center_vbox), GTK_WIDGET(web_view), true, true, 0);
 
   gtk_container_add(GTK_CONTAINER(window), center_vbox);
 
-  return window;
+  GtkBrowser *browser = malloc(sizeof *browser);
+  browser->window = window;
+  browser->web_view = web_view;
+
+  g_signal_connect(web_view, "close", G_CALLBACK(close_web_view_cb), browser);
+  enable_developer_tools(web_view);
+
+  return browser;
 }
 
 /*
@@ -343,23 +344,21 @@ app_activate_cb(GtkApplication *app, gpointer user_data) {
                     G_CALLBACK(initialize_web_extensions),
                     NULL);
 
+  greeter_browsers = g_ptr_array_new();
+
   WebKitWebView *web_view = create_web_view();
   /*WebKitWebView *web_view1 = create_web_view();*/
 
-  GtkApplicationWindow *main_window = create_browser(app, web_view);
-  /*GtkApplicationWindow *main_window1 = create_browser(app, web_view1);*/
+  GtkBrowser *browser = create_browser(app, web_view);
+  /*GtkBrowser *browser1 = create_browser(app, web_view1);*/
 
-  g_signal_connect(web_view, "close", G_CALLBACK(close_web_view_cb), main_window);
-  /*g_signal_connect(web_view1, "close", G_CALLBACK(close_web_view_cb), main_window1);*/
-  enable_developer_tools(web_view);
-  /*enable_developer_tools(web_view1);*/
+  g_ptr_array_add(greeter_browsers, browser);
+  /*g_ptr_array_add(greeter_browsers, browser1);*/
 
   initialize_actions(app);
-
-  set_keybindings(main_window);
+  set_keybindings();
 
   load_theme(web_view);
-  /*webkit_web_view_load_uri(web_view1, "google.com");*/
   /*load_theme(web_view1);*/
 }
 
