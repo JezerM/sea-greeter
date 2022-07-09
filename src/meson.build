@@ -8,13 +8,13 @@ web_extension_sources = [
 
   'extension/lightdm.c',
   'extension/utils.c',
+  'extension/lightdm-signal.c',
 
   'bridge/lightdm-objects.c',
-  #'bridge/lightdm.c',
   'bridge/greeter_config.c',
   'bridge/theme_utils.c',
   'bridge/utils.c',
-  'bridge/lightdm-signal.c',
+  #'bridge/lightdm-signal.c',
 ]
 
 gtk3 = dependency('gtk+-3.0', version: '>=3.24')
@@ -40,7 +40,7 @@ greeter_sources = [
 
   'bridge/lightdm.c',
   'bridge/utils.c',
-  'bridge/lightdm-signal.c',
+  #'bridge/lightdm-signal.c',
   'bridge/lightdm-objects.c',
 ]
 
