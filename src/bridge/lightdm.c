@@ -9,8 +9,10 @@
 
 #include "settings.h"
 #include "logger.h"
+#include "greeter.h"
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
+#include "utils/utils.h"
 
 static LightDMGreeter *Greeter;
 static LightDMUserList *UserList;
@@ -20,6 +22,8 @@ static GString *shared_data_directory;
 
 static JSCVirtualMachine *VirtualMachine = NULL;
 static JSCContext *Context = NULL;
+
+extern GPtrArray *greeter_browsers;
 
 static JSCContext *
 get_global_context() {
@@ -630,119 +634,141 @@ LightDM_users_getter_cb()
 
 /* LightDM callbacks */
 
-/*
- *static void
- *authentication_complete_cb(
- *    LightDMGreeter *greeter,
- *    WebKitWebExtension *extension
- *) {
- *  (void) greeter;
- *  (void) extension;
- *  JSCValue *value = LightDM_object->value;
- *
- *  JSCValue *signal = jsc_value_object_get_property(value, "authentication_complete");
- *  (void) jsc_value_object_invoke_method(
- *      signal,
- *      "emit",
- *      G_TYPE_NONE
- *      );
- *}
- */
-/*
- *static void
- *autologin_timer_expired_cb(
- *    LightDMGreeter *greeter,
- *    WebKitWebExtension *extension
- *) {
- *  (void) greeter;
- *  (void) extension;
- *  JSCValue *value = LightDM_object->value;
- *
- *  JSCValue *signal = jsc_value_object_get_property(value, "autologin_timer_expired");
- *  (void) jsc_value_object_invoke_method(
- *      signal,
- *      "emit",
- *      G_TYPE_NONE
- *      );
- *}
- */
-/*
- *static void show_prompt_cb(
- *    LightDMGreeter *greeter,
- *    const gchar *text,
- *    LightDMPromptType type,
- *    WebKitWebExtension *extension)
- *{
- *  (void) greeter;
- *  (void) extension;
- *  JSCValue *value = LightDM_object->value;
- *
- *  JSCValue *signal = jsc_value_object_get_property(value, "show_prompt");
- *  (void) jsc_value_object_invoke_method(
- *      signal,
- *      "emit",
- *      G_TYPE_STRING,
- *      text,
- *      G_TYPE_INT,
- *      type,
- *      G_TYPE_NONE
- *      );
- *}
- */
-/*
- *static void show_message_cb(
- *    LightDMGreeter *greeter,
- *    const gchar *text,
- *    LightDMMessageType type,
- *    WebKitWebExtension *extension)
- *{
- *  (void) greeter;
- *  (void) extension;
- *  JSCValue *value = LightDM_object->value;
- *
- *  JSCValue *signal = jsc_value_object_get_property(value, "show_message");
- *  (void) jsc_value_object_invoke_method(
- *      signal,
- *      "emit",
- *      G_TYPE_STRING,
- *      text,
- *      G_TYPE_INT,
- *      type,
- *      G_TYPE_NONE
- *      );
- *}
- */
+static void
+authentication_complete_cb(
+    LightDMGreeter *greeter
+) {
+  (void) greeter;
+  JSCContext *context = get_global_context();
+
+  GVariant *parameters = jsc_parameters_to_g_variant_array(
+      context,
+      "authentication_complete",
+      NULL
+      );
+
+  WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
+
+  for (guint i = 0; i < greeter_browsers->len; i++) {
+    GtkBrowser *browser =  greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(
+        browser->web_view,
+        message,
+        NULL, NULL, NULL
+        );
+  }
+}
+static void
+autologin_timer_expired_cb(
+    LightDMGreeter *greeter
+) {
+  (void) greeter;
+  JSCContext *context = get_global_context();
+
+  GVariant *parameters = jsc_parameters_to_g_variant_array(
+      context,
+      "autologin_timer_expired",
+      NULL
+      );
+
+  WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
+
+  for (guint i = 0; i < greeter_browsers->len; i++) {
+    GtkBrowser *browser =  greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(
+        browser->web_view,
+        message,
+        NULL, NULL, NULL
+        );
+  }
+}
+static void show_prompt_cb(
+    LightDMGreeter *greeter,
+    const gchar *text,
+    LightDMPromptType type
+) {
+  (void) greeter;
+  JSCContext *context = get_global_context();
+
+  GPtrArray *arr = g_ptr_array_new();
+  g_ptr_array_add(arr, jsc_value_new_string(context, text));
+  g_ptr_array_add(arr, jsc_value_new_number(context, type));
+
+  GVariant *parameters = jsc_parameters_to_g_variant_array(
+      context,
+      "show_prompt",
+      arr
+      );
+
+  WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
+
+  for (guint i = 0; i < greeter_browsers->len; i++) {
+    GtkBrowser *browser =  greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(
+        browser->web_view,
+        message,
+        NULL, NULL, NULL
+        );
+  }
+}
+static void show_message_cb(
+    LightDMGreeter *greeter,
+    const gchar *text,
+    LightDMMessageType type
+) {
+  (void) greeter;
+  JSCContext *context = get_global_context();
+
+  GPtrArray *arr = g_ptr_array_new();
+  g_ptr_array_add(arr, jsc_value_new_string(context, text));
+  g_ptr_array_add(arr, jsc_value_new_number(context, type));
+
+  GVariant *parameters = jsc_parameters_to_g_variant_array(
+      context,
+      "show_message",
+      arr
+      );
+
+  WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
+
+  for (guint i = 0; i < greeter_browsers->len; i++) {
+    GtkBrowser *browser =  greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(
+        browser->web_view,
+        message,
+        NULL, NULL, NULL
+        );
+  }
+}
 
 /**
  * Connect LightDM signals to their callbacks
  */
 void LightDM_connect_signals() {
-  /*
-   *g_signal_connect(
-   *  Greeter,
-   *  "authentication-complete",
-   *  G_CALLBACK(authentication_complete_cb),
-   *  WebExtension
-   *);
-   *g_signal_connect(
-   *  Greeter,
-   *  "autologin-timer-expired",
-   *  G_CALLBACK(autologin_timer_expired_cb),
-   *  WebExtension
-   *);
-   *g_signal_connect(
-   *  Greeter,
-   *  "show-prompt",
-   *  G_CALLBACK(show_prompt_cb),
-   *  WebExtension
-   *);
-   *g_signal_connect(
-   *  Greeter,
-   *  "show-message",
-   *  G_CALLBACK(show_message_cb),
-   *  WebExtension
-   *);
-   */
+  g_signal_connect(
+    Greeter,
+    "authentication-complete",
+    G_CALLBACK(authentication_complete_cb),
+    NULL
+  );
+  g_signal_connect(
+    Greeter,
+    "autologin-timer-expired",
+    G_CALLBACK(autologin_timer_expired_cb),
+    NULL
+  );
+  g_signal_connect(
+    Greeter,
+    "show-prompt",
+    G_CALLBACK(show_prompt_cb),
+    NULL
+  );
+  g_signal_connect(
+    Greeter,
+    "show-message",
+    G_CALLBACK(show_message_cb),
+    NULL
+  );
 }
 
 /**
@@ -752,7 +778,7 @@ static void
 LightDM_constructor() {
   GError *err = NULL;
 
-  /*LightDM_connect_signals();*/
+  LightDM_connect_signals();
 
   gboolean connected = lightdm_greeter_connect_to_daemon_sync(Greeter, &err);
   if (!connected && err) {
