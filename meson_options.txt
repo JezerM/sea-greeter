@@ -1,0 +1,4 @@
+option('with-webext-dir',
+       type: 'string',
+       value: '"/usr/lib/sea-greeter"',
+       description: 'Directory for the greeter webkit extension')

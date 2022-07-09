@@ -7,7 +7,7 @@ as_version = meson.project_version()
 conf = configuration_data()
 
 conf.set('VERSION', as_version)
-conf.set('WEB_EXTENSIONS_DIR', '"/usr/lib/sea-greeter/"')
+conf.set('WEB_EXTENSIONS_DIR', get_option('with-webext-dir'))
 
 subdirs = ['src', 'data']
 
