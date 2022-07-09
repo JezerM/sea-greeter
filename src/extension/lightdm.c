@@ -885,7 +885,7 @@ ready_event_loaded(WebKitWebPage *web_page, JSCContext *context) {
  * Initialize the LightDM environment
  */
 void
-LightDM_Test_initialize(
+LightDM_initialize(
     WebKitScriptWorld *world,
     WebKitWebPage *web_page,
     WebKitFrame *web_frame,
@@ -901,15 +901,15 @@ LightDM_Test_initialize(
   if (LightDM_object != NULL) {
     jsc_value_object_set_property(
         global_object,
-        "lightdm_test",
+        "lightdm",
         LightDM_object->value
         );
 
-    /*jsc_value_object_set_property(*/
-        /*global_object,*/
-        /*"_ready_event",*/
-        /*ready_event*/
-        /*);*/
+    jsc_value_object_set_property(
+        global_object,
+        "_ready_event",
+        ready_event
+        );
     return;
   }
 
@@ -1008,7 +1008,7 @@ LightDM_Test_initialize(
 
   jsc_value_object_set_property(
       global_object,
-      "lightdm_test",
+      "lightdm",
       ldm_greeter_object
       );
 
@@ -1019,13 +1019,13 @@ LightDM_Test_initialize(
   };
   ready_event = jsc_value_constructor_callv(event_class, 1, event_parameters);
 
-  /*jsc_value_object_set_property(*/
-      /*global_object,*/
-      /*"_ready_event",*/
-      /*ready_event*/
-      /*);*/
+  jsc_value_object_set_property(
+      global_object,
+      "_ready_event",
+      ready_event
+      );
 
-  /*g_signal_connect(web_page, "document-loaded",*/
-      /*G_CALLBACK(ready_event_loaded),*/
-      /*js_context);*/
+  g_signal_connect(web_page, "document-loaded",
+      G_CALLBACK(ready_event_loaded),
+      js_context);
 }

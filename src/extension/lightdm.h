@@ -5,7 +5,7 @@
 #include <lightdm-gobject-1/lightdm.h>
 
 void
-LightDM_Test_initialize(
+LightDM_initialize(
     WebKitScriptWorld *world,
     WebKitWebPage *web_page,
     WebKitFrame *web_frame,
