@@ -9,7 +9,7 @@ conf = configuration_data()
 conf.set('VERSION', as_version)
 conf.set('WEB_EXTENSIONS_DIR', '"/usr/lib/sea-greeter/"')
 
-subdirs = ['src']
+subdirs = ['src', 'data']
 
 foreach s : subdirs
   subdir(s)

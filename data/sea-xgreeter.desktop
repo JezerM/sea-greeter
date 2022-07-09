@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Sea Greeter
+Comment=Greeter for LightDM
+Exec=sea-greeter
+Type=Application
+X-Ubuntu-Gettext-Domain=web-greeter

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=sea-greeter
+Exec=/usr/bin/sea-greeter %U
+Terminal=false
+Type=Application
+Icon=com.github.jezerm.sea-greeter
+StartupWMClass=sea-greeter
+Comment=Web based greeter for LightDM made with WebKitGTK2
+Categories=System;
