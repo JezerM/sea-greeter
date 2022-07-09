@@ -1,6 +1,23 @@
 # Sea Greeter
 
-Sea (like C) greeter for LightDM allows to create themes with web technologies, the same as web-greeter, nody-greeter and the outdated lightdm-webkit2-greeter. This project aims to be similar to the last one, as sea-greeter is made with webkit2 instead of chromium.
+Sea (like C) greeter for LightDM allows to create themes with web technologies,
+the same as [web-greeter][web-greeter], [nody-greeter][nody-greeter] and the
+outdated [lightdm-webkit2-greeter][webkit2-greeter]. This project aims to be
+similar to the last one, as sea-greeter is made with webkit2 instead of chromium.
+
+## Known issues
+
+- Window does not start in fullscreen when no window manager available
+- No multi-monitor support yet
+- No command line arguments support
+- No brightness and battery features support
+- No `greeter_config.layouts` support
+- Debug mode is always active (for testing)
+- Memory management might not be correct (possible memory leaks)
+- No themes preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
+- No config preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
+
+Besides that, you can login to your session :D
 
 ## Dependencies
 
@@ -26,3 +43,7 @@ meson build
 ninja -C build
 sudo ninja -C build install
 ```
+
+[web-greeter]: https://github.com/JezerM/web-greeter "Web Greeter"
+[nody-greeter]: https://github.com/JezerM/nody-greeter "Nody Greeter"
+[webkit2-greeter]: https://github.com/Antergos/web-greeter/tree/stable "LightDM WebKit2 Greeter"
