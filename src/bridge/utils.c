@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "bridge/utils.h"
 
@@ -8,8 +8,10 @@
  * Converts a JSCValue to a string
  */
 gchar *
-js_value_to_string_or_null(JSCValue *value) {
-  if (!jsc_value_is_string(value)) return NULL;
+js_value_to_string_or_null(JSCValue *value)
+{
+  if (!jsc_value_is_string(value))
+    return NULL;
   return jsc_value_to_string(value);
 }
 
@@ -17,9 +19,11 @@ js_value_to_string_or_null(JSCValue *value) {
  * Get index position of *find* inside *source*
  */
 int
-g_string_get_index_of(GString *source, GString *find) {
+g_string_get_index_of(GString *source, GString *find)
+{
   gchar *found = strstr(source->str, find->str);
-  if (found != NULL) return found - source->str;
+  if (found != NULL)
+    return found - source->str;
   return -1;
 }
 
@@ -27,7 +31,8 @@ g_string_get_index_of(GString *source, GString *find) {
  * Get index position of last ocurrence of *find* inside *source*
  */
 int
-g_string_get_last_index_of(GString *source, GString *find) {
+g_string_get_last_index_of(GString *source, GString *find)
+{
   int index = -1, tmp;
   GString *str = g_string_new(source->str);
   while ((tmp = g_string_get_index_of(str, find)) != -1) {
@@ -40,9 +45,8 @@ g_string_get_last_index_of(GString *source, GString *find) {
 /**
  * Initialize the properties of a class
  */
-void initialize_class_properties(
-    JSCClass *class,
-    const struct JSCClassProperty properties[])
+void
+initialize_class_properties(JSCClass *class, const struct JSCClassProperty properties[])
 {
   int i = 0;
   struct JSCClassProperty current = properties[i];
@@ -52,15 +56,7 @@ void initialize_class_properties(
         current.property_type = JSC_TYPE_VALUE;
         break;
     }
-    jsc_class_add_property(
-        class,
-        current.name,
-        current.property_type,
-        current.getter,
-        current.setter,
-        NULL,
-        NULL
-        );
+    jsc_class_add_property(class, current.name, current.property_type, current.getter, current.setter, NULL, NULL);
     i++;
     current = properties[i];
   }
@@ -69,9 +65,8 @@ void initialize_class_properties(
 /**
  * Initialize the properties of a class
  */
-void initialize_class_methods(
-    JSCClass *class,
-    const struct JSCClassMethod methods[])
+void
+initialize_class_methods(JSCClass *class, const struct JSCClassMethod methods[])
 {
   int i = 0;
   struct JSCClassMethod current = methods[i];
@@ -81,14 +76,7 @@ void initialize_class_methods(
         current.return_type = JSC_TYPE_VALUE;
         break;
     }
-    jsc_class_add_method_variadic(
-        class,
-        current.name,
-        current.callback,
-        NULL,
-        NULL,
-        current.return_type
-        );
+    jsc_class_add_method_variadic(class, current.name, current.callback, NULL, NULL, current.return_type);
     i++;
     current = methods[i];
   }

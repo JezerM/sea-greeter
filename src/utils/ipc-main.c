@@ -15,17 +15,11 @@ typedef struct {
 } IPCMessage;
 
 static void
-send_message_cb(
-    GObject *web_view,
-    GAsyncResult *res,
-    gpointer user_data)
+send_message_cb(GObject *web_view, GAsyncResult *res, gpointer user_data)
 {
   IPCMessage *ipc_message = user_data;
   ipc_message->received = true;
-  ipc_message->message = webkit_web_view_send_message_to_page_finish(
-      WEBKIT_WEB_VIEW(web_view),
-      res,
-      NULL);
+  ipc_message->message = webkit_web_view_send_message_to_page_finish(WEBKIT_WEB_VIEW(web_view), res, NULL);
 }
 
 /**
@@ -36,9 +30,7 @@ send_message_cb(
  * @Returns The received response from web_view
  */
 WebKitUserMessage *
-ipc_main_send_message_sync(
-    WebKitWebView *web_view,
-    WebKitUserMessage *message)
+ipc_main_send_message_sync(WebKitWebView *web_view, WebKitUserMessage *message)
 {
   IPCMessage *ipc_message = malloc(sizeof *ipc_message);
   ipc_message->received = false;
@@ -67,10 +59,7 @@ ipc_main_send_message_sync(
  * @param callback A callback
  */
 void
-ipc_renderer_send_message(
-    WebKitWebView *web_view,
-    WebKitUserMessage *message,
-    GAsyncReadyCallback callback)
+ipc_renderer_send_message(WebKitWebView *web_view, WebKitUserMessage *message, GAsyncReadyCallback callback)
 {
   webkit_web_view_send_message_to_page(web_view, message, NULL, callback, NULL);
 }
@@ -83,10 +72,7 @@ ipc_main_send_message_sync_with_arguments(
     const char *target,
     GPtrArray *arguments)
 {
-  GVariant *parameters = jsc_parameters_to_g_variant_array(
-      jsc_context,
-      target,
-      arguments);
+  GVariant *parameters = jsc_parameters_to_g_variant_array(jsc_context, target, arguments);
   WebKitUserMessage *message = webkit_user_message_new(object, parameters);
   WebKitUserMessage *reply = ipc_main_send_message_sync(web_view, message);
   return reply;

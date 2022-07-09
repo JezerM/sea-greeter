@@ -1,14 +1,16 @@
+#include "logger.h"
+#include "settings.h"
+#include <glib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <webkit2/webkit2.h>
-#include <glib.h>
-#include "settings.h"
-#include "logger.h"
 
 extern GreeterConfig *greeter_config;
 
-void load_theme(WebKitWebView *web_view) {
+void
+load_theme(WebKitWebView *web_view)
+{
   char *theme = greeter_config->greeter->theme->str;
   char *dir = greeter_config->app->theme_dir->str;
   char *path_to_theme = g_strconcat(dir, theme, "/index.html", NULL);
@@ -17,8 +19,7 @@ void load_theme(WebKitWebView *web_view) {
   if (theme[0] == '/') {
     g_free(path_to_theme);
     path_to_theme = g_strdup(theme);
-  }
-  else if (strstr(theme, ".") || strstr(theme, "/")) {
+  } else if (strstr(theme, ".") || strstr(theme, "/")) {
     g_free(path_to_theme);
     path_to_theme = g_strconcat(getcwd(NULL, 0), "/", theme, NULL);
   }
@@ -28,10 +29,7 @@ void load_theme(WebKitWebView *web_view) {
   }
 
   if (access(path_to_theme, F_OK) != 0) {
-    logger_warn(
-        g_strdup_printf("\"%s\" theme does not exists. Using \"%s\" theme",
-          theme, def_theme)
-        );
+    logger_warn(g_strdup_printf("\"%s\" theme does not exists. Using \"%s\" theme", theme, def_theme));
     g_free(path_to_theme);
     path_to_theme = g_strconcat(dir, def_theme, "/index.html", NULL);
   }
@@ -54,7 +52,7 @@ void load_theme(WebKitWebView *web_view) {
   }
   fclose(file);
 
-  char* uri = g_strconcat("file://", greeter_config->greeter->theme->str, NULL);
+  char *uri = g_strconcat("file://", greeter_config->greeter->theme->str, NULL);
   webkit_web_view_load_html(web_view, html->str, uri);
   g_free(uri);
 

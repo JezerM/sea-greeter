@@ -14,7 +14,8 @@ extension_initialize(
     WebKitScriptWorld *world,
     WebKitWebPage *web_page,
     WebKitFrame *web_frame,
-    WebKitWebExtension *extension) {
+    WebKitWebExtension *extension)
+{
   (void) web_page;
   (void) extension;
   LightDM_signal_initialize(world, web_page, web_frame, extension);
@@ -24,12 +25,13 @@ extension_initialize(
   LightDM_initialize(world, web_page, web_frame, extension);
 }
 
-void web_page_initialize(WebKitWebExtension *extension) {
+void
+web_page_initialize(WebKitWebExtension *extension)
+{
   WebExtension = extension;
   g_signal_connect(
-    webkit_script_world_get_default(),
-    "window-object-cleared",
-    G_CALLBACK(extension_initialize),
-    extension
-  );
+      webkit_script_world_get_default(),
+      "window-object-cleared",
+      G_CALLBACK(extension_initialize),
+      extension);
 }

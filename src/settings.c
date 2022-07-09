@@ -1,14 +1,16 @@
+#include "settings.h"
+#include "logger.h"
 #include <glib.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <yaml.h>
-#include "settings.h"
-#include "logger.h"
 
 GreeterConfig *greeter_config;
 
-static void init_greeter_config_branding() {
+static void
+init_greeter_config_branding()
+{
   GreeterConfigBranding *branding = greeter_config->branding;
   branding = malloc(sizeof *branding);
   branding->background_images_dir = g_string_new(NULL);
@@ -16,7 +18,9 @@ static void init_greeter_config_branding() {
   branding->user_image = g_string_new(NULL);
   greeter_config->branding = branding;
 }
-static void init_greeter_config_greeter() {
+static void
+init_greeter_config_greeter()
+{
   GreeterConfigGreeter *greeter = greeter_config->greeter;
   greeter = malloc(sizeof *greeter);
   greeter->debug_mode = false;
@@ -28,7 +32,9 @@ static void init_greeter_config_greeter() {
   greeter->time_language = g_string_new(NULL);
   greeter_config->greeter = greeter;
 }
-static void init_greeter_config_features() {
+static void
+init_greeter_config_features()
+{
   GreeterConfigFeatures *features = greeter_config->features;
   features = malloc(sizeof *features);
   features->battery = false;
@@ -38,7 +44,9 @@ static void init_greeter_config_features() {
   features->backlight->value = 10;
   greeter_config->features = features;
 }
-static void init_greeter_config_app() {
+static void
+init_greeter_config_app()
+{
   GreeterConfigApp *app = greeter_config->app;
   app = malloc(sizeof *app);
   app->debug_mode = false;
@@ -47,14 +55,17 @@ static void init_greeter_config_app() {
   greeter_config->app = app;
 }
 
-void print_greeter_config() {
+void
+print_greeter_config()
+{
   GString *layouts = g_string_new("");
   GList *actual = greeter_config->layouts;
-  if (actual == NULL) g_string_append(layouts, "\n");
+  if (actual == NULL)
+    g_string_append(layouts, "\n");
   else {
     while (actual != NULL) {
       if (actual->data != NULL)
-        g_string_append_printf(layouts, "  \"%s\"\n", (char*) actual->data);
+        g_string_append_printf(layouts, "  \"%s\"\n", (char *) actual->data);
       actual = actual->next;
     }
   }
@@ -77,8 +88,7 @@ void print_greeter_config() {
       "  backlight:\n"
       "    enabled: %d\n"
       "    value: %d\n"
-      "    steps: %d\n"
-      ,
+      "    steps: %d\n",
       greeter_config->branding->background_images_dir->str,
       greeter_config->branding->logo_image->str,
       greeter_config->branding->user_image->str,
@@ -92,12 +102,13 @@ void print_greeter_config() {
       greeter_config->features->battery,
       greeter_config->features->backlight->enabled,
       greeter_config->features->backlight->value,
-      greeter_config->features->backlight->steps
-      );
+      greeter_config->features->backlight->steps);
   g_string_free(layouts, true);
 }
 
-static void init_greeter_config() {
+static void
+init_greeter_config()
+{
   greeter_config = g_malloc(sizeof *greeter_config);
   init_greeter_config_branding();
   init_greeter_config_greeter();
@@ -106,7 +117,9 @@ static void init_greeter_config() {
   greeter_config->layouts = g_list_alloc();
 }
 
-void free_greeter_config() {
+void
+free_greeter_config()
+{
   /*free_greeter_config_branding();*/
   /*free_greeter_config_greeter();*/
   /*free_greeter_config_features();*/
@@ -115,16 +128,25 @@ void free_greeter_config() {
   g_free(greeter_config);
 }
 
-static bool yaml_get_bool(char *str) {
-  if (strcmp(str, "True") == 0) return true;
-  else return false;
+static bool
+yaml_get_bool(char *str)
+{
+  if (strcmp(str, "True") == 0)
+    return true;
+  else
+    return false;
 }
-static int yaml_get_int(char *str) {
+static int
+yaml_get_int(char *str)
+{
   return strtol(str, NULL, 10);
 }
 
-static void load_branding(GNode *node) {
-  if (node == NULL) return;
+static void
+load_branding(GNode *node)
+{
+  if (node == NULL)
+    return;
   char *key = node->data;
   char *value = node->children->data;
   if (strcmp(key, "background_images_dir") == 0) {
@@ -140,8 +162,11 @@ static void load_branding(GNode *node) {
   /*printf("  %s: %s\n", key, (char*) value);*/
   load_branding(node->next);
 }
-static void load_greeter(GNode *node) {
-  if (node == NULL) return;
+static void
+load_greeter(GNode *node)
+{
+  if (node == NULL)
+    return;
   char *key = node->data;
   char *value = node->children->data;
   if (strcmp(key, "debug_mode") == 0) {
@@ -165,15 +190,21 @@ static void load_greeter(GNode *node) {
   /*printf("  %s: %s\n", key, (char*) value);*/
   load_greeter(node->next);
 }
-static void load_layouts(GNode *node) {
-  if (node == NULL) return;
+static void
+load_layouts(GNode *node)
+{
+  if (node == NULL)
+    return;
   char *value = node->data;
   greeter_config->layouts = g_list_append(greeter_config->layouts, value);
   /*printf("  %s\n", (char*) value);*/
   load_layouts(node->next);
 }
-static void load_backlight(GNode *node) {
-  if (node == NULL) return;
+static void
+load_backlight(GNode *node)
+{
+  if (node == NULL)
+    return;
   char *key = node->data;
   char *value = node->children->data;
   if (strcmp(key, "enabled") == 0) {
@@ -186,8 +217,11 @@ static void load_backlight(GNode *node) {
   /*printf("    %s: %s\n", key, (char*) value);*/
   load_backlight(node->next);
 }
-static void load_features(GNode *node) {
-  if (node == NULL) return;
+static void
+load_features(GNode *node)
+{
+  if (node == NULL)
+    return;
   char *key = node->data;
   char *value = node->children->data;
   if (strcmp(key, "battery") == 0) {
@@ -201,7 +235,9 @@ static void load_features(GNode *node) {
 
 enum storage_flags { VAR, VAL, SEQ };
 
-static void process_layer(yaml_parser_t *parser, GNode *data) {
+static void
+process_layer(yaml_parser_t *parser, GNode *data)
+{
   GNode *last_leaf = data;
   yaml_event_t event;
   int storage = VAR;
@@ -210,35 +246,35 @@ static void process_layer(yaml_parser_t *parser, GNode *data) {
     yaml_parser_parse(parser, &event);
 
     if (event.type == YAML_SCALAR_EVENT) {
-      if (storage) g_node_append_data(last_leaf,
-        g_strdup((gchar*) event.data.scalar.value));
-      else last_leaf = g_node_append(data,
-        g_node_new(g_strdup((gchar*) event.data.scalar.value)));
+      if (storage)
+        g_node_append_data(last_leaf, g_strdup((gchar *) event.data.scalar.value));
+      else
+        last_leaf = g_node_append(data, g_node_new(g_strdup((gchar *) event.data.scalar.value)));
       storage ^= VAL;
-    }
-    else if (event.type == YAML_SEQUENCE_START_EVENT) storage = SEQ;
-    else if (event.type == YAML_SEQUENCE_END_EVENT) storage = VAR;
+    } else if (event.type == YAML_SEQUENCE_START_EVENT)
+      storage = SEQ;
+    else if (event.type == YAML_SEQUENCE_END_EVENT)
+      storage = VAR;
     else if (event.type == YAML_MAPPING_START_EVENT) {
       process_layer(parser, last_leaf);
       storage ^= VAL;
-    }
-    else if (
-      event.type == YAML_MAPPING_END_EVENT ||
-      event.type == YAML_STREAM_END_EVENT
-    ) break;
+    } else if (event.type == YAML_MAPPING_END_EVENT || event.type == YAML_STREAM_END_EVENT)
+      break;
 
     yaml_event_delete(&event);
   }
 }
 
-void load_configuration() {
+void
+load_configuration()
+{
   init_greeter_config();
 
   char *path_to_config = "/etc/lightdm/web-greeter.yml";
   FILE *fh = fopen(path_to_config, "rb");
   yaml_parser_t parser;
 
-  if(!yaml_parser_initialize(&parser) || fh == NULL) {
+  if (!yaml_parser_initialize(&parser) || fh == NULL) {
     logger_error("Config was not loaded");
     return;
   }
@@ -254,11 +290,16 @@ void load_configuration() {
   GNode *node = cfg->children;
   do {
     /*printf("'%s'\n", (char*) node->data);*/
-    if (strcmp(node->data, "branding") == 0) {load_branding(node->children);}
-    else if (strcmp(node->data, "greeter") == 0) {load_greeter(node->children);}
-    else if (strcmp(node->data, "layouts") == 0) {load_layouts(node->children);}
-    else if (strcmp(node->data, "features") == 0) {load_features(node->children);}
-    else break;
+    if (strcmp(node->data, "branding") == 0) {
+      load_branding(node->children);
+    } else if (strcmp(node->data, "greeter") == 0) {
+      load_greeter(node->children);
+    } else if (strcmp(node->data, "layouts") == 0) {
+      load_layouts(node->children);
+    } else if (strcmp(node->data, "features") == 0) {
+      load_features(node->children);
+    } else
+      break;
     node = node->next;
   } while (node != NULL);
   g_node_destroy(cfg);

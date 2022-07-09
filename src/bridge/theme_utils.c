@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <jsc/jsc.h>
 
-#include "settings.h"
-#include "logger.h"
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
+#include "logger.h"
+#include "settings.h"
 
 #include "utils/ipc-renderer.h"
 
@@ -17,14 +17,16 @@ static WebKitWebPage *WebPage = NULL;
 ldm_object *ThemeUtils_object = NULL;
 
 static void *
-jsc_callback_call(JSCContext *context, JSCValue *callback, JSCValue *value) {
+jsc_callback_call(JSCContext *context, JSCValue *callback, JSCValue *value)
+{
   JSCValue *jsc_console = jsc_context_get_value(context, "console");
   if (!jsc_value_is_function(callback)) {
-    ( void) jsc_value_object_invoke_method(jsc_console, "error",
+    (void) jsc_value_object_invoke_method(
+        jsc_console,
+        "error",
         G_TYPE_STRING,
         "theme_utils.dirlist(): callback is not a function",
-        G_TYPE_NONE
-        );
+        G_TYPE_NONE);
     return NULL;
   }
 
@@ -34,10 +36,8 @@ jsc_callback_call(JSCContext *context, JSCValue *callback, JSCValue *value) {
 }
 
 static void *
-ThemeUtils_dirlist_cb(
-    ldm_object *instance,
-    GPtrArray *arguments
-) {
+ThemeUtils_dirlist_cb(ldm_object *instance, GPtrArray *arguments)
+{
   JSCContext *context = instance->context;
   if (arguments->len < 3) {
     return NULL;
@@ -52,11 +52,12 @@ ThemeUtils_dirlist_cb(
 
   gchar *path = js_value_to_string_or_null(jsc_path);
   if (path == NULL) {
-    (void) jsc_value_object_invoke_method(jsc_console, "error",
+    (void) jsc_value_object_invoke_method(
+        jsc_console,
+        "error",
         G_TYPE_STRING,
         "theme_utils.dirlist(): path must be a non-empty string!",
-        G_TYPE_NONE
-        );
+        G_TYPE_NONE);
     return jsc_callback_call(context, jsc_callback, value);
   }
 
@@ -92,12 +93,7 @@ ThemeUtils_dirlist_cb(
 
   GPtrArray *files = g_ptr_array_new();
 
-  GRegex *regex = g_regex_new(
-      ".+\\.(jpe?g|png|gif|bmp|webp)",
-      G_REGEX_CASELESS,
-      0,
-      NULL
-      );
+  GRegex *regex = g_regex_new(".+\\.(jpe?g|png|gif|bmp|webp)", G_REGEX_CASELESS, 0, NULL);
 
   while ((ent = readdir(dir)) != NULL) {
     char *file_name = ent->d_name;
@@ -108,9 +104,7 @@ ThemeUtils_dirlist_cb(
     char *file_path = g_build_path("/", resolved_path, file_name, NULL);
     /*printf("-> '%s'\n", file_name);*/
 
-    if (jsc_value_is_boolean(jsc_only_images) &&
-        jsc_value_to_boolean(jsc_only_images)
-    ) {
+    if (jsc_value_is_boolean(jsc_only_images) && jsc_value_to_boolean(jsc_only_images)) {
       struct stat file_stat;
       stat(file_path, &file_stat);
       if (S_ISREG(file_stat.st_mode) && g_regex_match(regex, file_name, 0, NULL)) {
@@ -134,10 +128,8 @@ ThemeUtils_dirlist_cb(
 char *time_language = NULL;
 
 static JSCValue *
-ThemeUtils_get_current_localized_date_cb(
-    ldm_object *instance,
-    GPtrArray *arguments
-) {
+ThemeUtils_get_current_localized_date_cb(ldm_object *instance, GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = instance->context;
 
@@ -147,9 +139,7 @@ ThemeUtils_get_current_localized_date_cb(
   GPtrArray *locales = g_ptr_array_new();
 
   if (time_language == NULL) {
-    JSCValue *jsc_time_language = jsc_context_evaluate(context,
-        "greeter_config.greeter.time_language",
-        36);
+    JSCValue *jsc_time_language = jsc_context_evaluate(context, "greeter_config.greeter.time_language", 36);
     time_language = jsc_value_to_string(jsc_time_language);
   }
 
@@ -161,34 +151,23 @@ ThemeUtils_get_current_localized_date_cb(
 
   JSCValue *two_digit = jsc_value_new_string(context, "2-digit");
   JSCValue *options_date = jsc_value_new_object(context, NULL, NULL);
-  jsc_value_object_set_property(options_date, "day",
-      two_digit);
-  jsc_value_object_set_property(options_date, "month",
-      two_digit);
-  jsc_value_object_set_property(options_date, "year",
-      two_digit);
+  jsc_value_object_set_property(options_date, "day", two_digit);
+  jsc_value_object_set_property(options_date, "month", two_digit);
+  jsc_value_object_set_property(options_date, "year", two_digit);
 
-  JSCValue *fmtDate = jsc_value_function_call(DateTimeFormat,
-      JSC_TYPE_VALUE, jsc_locales,
-      JSC_TYPE_VALUE, options_date,
-      G_TYPE_NONE
-      );
+  JSCValue *fmtDate
+      = jsc_value_function_call(DateTimeFormat, JSC_TYPE_VALUE, jsc_locales, JSC_TYPE_VALUE, options_date, G_TYPE_NONE);
 
   JSCValue *Now = jsc_context_evaluate(context, "new Date()", 10);
 
-  JSCValue *date = jsc_value_object_invoke_method(fmtDate, "format",
-      JSC_TYPE_VALUE, Now,
-      G_TYPE_NONE
-      );
+  JSCValue *date = jsc_value_object_invoke_method(fmtDate, "format", JSC_TYPE_VALUE, Now, G_TYPE_NONE);
 
   return date;
 }
 
 static JSCValue *
-ThemeUtils_get_current_localized_time_cb(
-    ldm_object *instance,
-    GPtrArray *arguments
-) {
+ThemeUtils_get_current_localized_time_cb(ldm_object *instance, GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = instance->context;
 
@@ -198,9 +177,7 @@ ThemeUtils_get_current_localized_time_cb(
   GPtrArray *locales = g_ptr_array_new();
 
   if (time_language == NULL) {
-    JSCValue *jsc_time_language = jsc_context_evaluate(context,
-        "greeter_config.greeter.time_language",
-        36);
+    JSCValue *jsc_time_language = jsc_context_evaluate(context, "greeter_config.greeter.time_language", 36);
     time_language = jsc_value_to_string(jsc_time_language);
   }
   /*printf("Time language: '%s'\n", time_language);*/
@@ -213,23 +190,15 @@ ThemeUtils_get_current_localized_time_cb(
 
   JSCValue *two_digit = jsc_value_new_string(context, "2-digit");
   JSCValue *options_date = jsc_value_new_object(context, NULL, NULL);
-  jsc_value_object_set_property(options_date, "hour",
-      two_digit);
-  jsc_value_object_set_property(options_date, "minute",
-      two_digit);
+  jsc_value_object_set_property(options_date, "hour", two_digit);
+  jsc_value_object_set_property(options_date, "minute", two_digit);
 
-  JSCValue *fmtDate = jsc_value_function_call(DateTimeFormat,
-      JSC_TYPE_VALUE, jsc_locales,
-      JSC_TYPE_VALUE, options_date,
-      G_TYPE_NONE
-      );
+  JSCValue *fmtDate
+      = jsc_value_function_call(DateTimeFormat, JSC_TYPE_VALUE, jsc_locales, JSC_TYPE_VALUE, options_date, G_TYPE_NONE);
 
   JSCValue *Now = jsc_context_evaluate(context, "new Date()", 10);
 
-  JSCValue *date = jsc_value_object_invoke_method(fmtDate, "format",
-      JSC_TYPE_VALUE, Now,
-      G_TYPE_NONE
-      );
+  JSCValue *date = jsc_value_object_invoke_method(fmtDate, "format", JSC_TYPE_VALUE, Now, G_TYPE_NONE);
 
   return date;
 }
@@ -237,8 +206,9 @@ ThemeUtils_get_current_localized_time_cb(
 /**
  * ThemeUtils Class constructor, should be called only once in sea-greeter's life
  */
-static JSCValue*
-ThemeUtils_constructor(JSCContext *context) {
+static JSCValue *
+ThemeUtils_constructor(JSCContext *context)
+{
   return jsc_value_new_null(context);
 }
 
@@ -247,8 +217,8 @@ ThemeUtils_initialize(
     WebKitScriptWorld *world,
     WebKitWebPage *web_page,
     WebKitFrame *web_frame,
-    WebKitWebExtension *extension
-) {
+    WebKitWebExtension *extension)
+{
   WebPage = web_page;
   (void) extension;
 
@@ -256,34 +226,27 @@ ThemeUtils_initialize(
   JSCValue *global_object = jsc_context_get_global_object(js_context);
 
   if (ThemeUtils_object != NULL) {
-    jsc_value_object_set_property(
-        global_object,
-        "theme_utils",
-        ThemeUtils_object->value
-        );
+    jsc_value_object_set_property(global_object, "theme_utils", ThemeUtils_object->value);
     return;
   }
 
-  JSCClass *ThemeUtils_class = jsc_context_register_class(
-      js_context,
-      "__GreeterConfig",
-      NULL,
-      NULL,
-      NULL
-      );
+  JSCClass *ThemeUtils_class = jsc_context_register_class(js_context, "__GreeterConfig", NULL, NULL, NULL);
 
   JSCValue *gc_constructor = jsc_class_add_constructor(
-      ThemeUtils_class, NULL,
+      ThemeUtils_class,
+      NULL,
       G_CALLBACK(ThemeUtils_constructor),
-      js_context, NULL,
-      JSC_TYPE_VALUE, 0, NULL
-      );
+      js_context,
+      NULL,
+      JSC_TYPE_VALUE,
+      0,
+      NULL);
 
   const struct JSCClassMethod ThemeUtils_methods[] = {
-    {"dirlist", G_CALLBACK(ThemeUtils_dirlist_cb), G_TYPE_NONE},
-    {"get_current_localized_date", G_CALLBACK(ThemeUtils_get_current_localized_date_cb), JSC_TYPE_VALUE},
-    {"get_current_localized_time", G_CALLBACK(ThemeUtils_get_current_localized_time_cb), JSC_TYPE_VALUE},
-    {NULL, NULL, 0},
+    { "dirlist", G_CALLBACK(ThemeUtils_dirlist_cb), G_TYPE_NONE },
+    { "get_current_localized_date", G_CALLBACK(ThemeUtils_get_current_localized_date_cb), JSC_TYPE_VALUE },
+    { "get_current_localized_time", G_CALLBACK(ThemeUtils_get_current_localized_time_cb), JSC_TYPE_VALUE },
+    { NULL, NULL, 0 },
   };
 
   initialize_class_methods(ThemeUtils_class, ThemeUtils_methods);
@@ -293,16 +256,8 @@ ThemeUtils_initialize(
   ThemeUtils_object->value = value;
   ThemeUtils_object->context = js_context;
 
-  JSCValue *theme_utils_object = jsc_value_new_object(
-      js_context,
-      ThemeUtils_object,
-      ThemeUtils_class
-      );
+  JSCValue *theme_utils_object = jsc_value_new_object(js_context, ThemeUtils_object, ThemeUtils_class);
   ThemeUtils_object->value = theme_utils_object;
 
-  jsc_value_object_set_property(
-      global_object,
-      "theme_utils",
-      theme_utils_object
-      );
+  jsc_value_object_set_property(global_object, "theme_utils", theme_utils_object);
 }

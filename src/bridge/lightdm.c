@@ -1,17 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
-#include <webkit2/webkit2.h>
 #include <jsc/jsc.h>
 #include <lightdm-gobject-1/lightdm.h>
+#include <webkit2/webkit2.h>
 
-#include "settings.h"
-#include "logger.h"
-#include "greeter.h"
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
+#include "greeter.h"
+#include "logger.h"
+#include "settings.h"
 #include "utils/utils.h"
 
 static LightDMGreeter *Greeter;
@@ -26,7 +26,8 @@ static JSCContext *Context = NULL;
 extern GPtrArray *greeter_browsers;
 
 static JSCContext *
-get_global_context() {
+get_global_context()
+{
   if (Context == NULL)
     Context = jsc_context_new_with_virtual_machine(VirtualMachine);
   return Context;
@@ -47,9 +48,8 @@ static BridgeObject LightDM_object;
  * Provide an empty string or NULL to prompt for the user
  */
 static JSCValue *
-LightDM_authenticate_cb(
-    GPtrArray *arguments
-) {
+LightDM_authenticate_cb(GPtrArray *arguments)
+{
   JSCContext *context = get_global_context();
 
   gchar *user = NULL;
@@ -57,7 +57,8 @@ LightDM_authenticate_cb(
     JSCValue *v = arguments->pdata[0];
     user = js_value_to_string_or_null(v);
   }
-  if (user && strcmp(user, "") == 0) user = NULL;
+  if (user && strcmp(user, "") == 0)
+    user = NULL;
 
   GError *err = NULL;
   if (!lightdm_greeter_authenticate(Greeter, user, &err)) {
@@ -72,9 +73,8 @@ LightDM_authenticate_cb(
  * Starts the authentication procedure for the guest user
  */
 static JSCValue *
-LightDM_authenticate_as_guest_cb(
-    GPtrArray *arguments
-) {
+LightDM_authenticate_as_guest_cb(GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = get_global_context();
   GError *err = NULL;
@@ -88,9 +88,8 @@ LightDM_authenticate_as_guest_cb(
  * Cancel user authentication that is currently in progress
  */
 static JSCValue *
-LightDM_cancel_authentication_cb(
-    GPtrArray *arguments
-) {
+LightDM_cancel_authentication_cb(GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = get_global_context();
   GError *err = NULL;
@@ -104,9 +103,8 @@ LightDM_cancel_authentication_cb(
  * Cancel the automatic login
  */
 static JSCValue *
-LightDM_cancel_autologin_cb(
-    GPtrArray *arguments
-) {
+LightDM_cancel_autologin_cb(GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = get_global_context();
   lightdm_greeter_cancel_autologin(Greeter);
@@ -116,9 +114,8 @@ LightDM_cancel_autologin_cb(
  * Triggers the system to hibernate
  */
 static JSCValue *
-LightDM_hibernate_cb(
-    GPtrArray *arguments
-) {
+LightDM_hibernate_cb(GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = get_global_context();
   GError *err = NULL;
@@ -135,13 +132,13 @@ LightDM_hibernate_cb(
  * @param arguments A pointer array to all JSCValue arguments
  */
 static JSCValue *
-LightDM_respond_cb(
-    GPtrArray *arguments)
+LightDM_respond_cb(GPtrArray *arguments)
 {
   JSCContext *context = get_global_context();
 
   gchar *response = NULL;
-  if (arguments->len == 0) return jsc_value_new_boolean(context, false);
+  if (arguments->len == 0)
+    return jsc_value_new_boolean(context, false);
   JSCValue *v = arguments->pdata[0];
   response = js_value_to_string_or_null(v);
 
@@ -158,9 +155,8 @@ LightDM_respond_cb(
  * Triggers the system to restart
  */
 static JSCValue *
-LightDM_restart_cb(
-    GPtrArray *arguments
-) {
+LightDM_restart_cb(GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = get_global_context();
   GError *err = NULL;
@@ -174,13 +170,13 @@ LightDM_restart_cb(
  * Set the language for the currently authenticated user
  */
 static JSCValue *
-LightDM_set_language_cb(
-    GPtrArray *arguments
-) {
+LightDM_set_language_cb(GPtrArray *arguments)
+{
   JSCContext *context = get_global_context();
 
   gchar *language = NULL;
-  if (arguments->len == 0) return jsc_value_new_boolean(context, false);
+  if (arguments->len == 0)
+    return jsc_value_new_boolean(context, false);
   JSCValue *v = arguments->pdata[0];
   language = js_value_to_string_or_null(v);
 
@@ -197,9 +193,8 @@ LightDM_set_language_cb(
  * Triggers the system to shutdown
  */
 static JSCValue *
-LightDM_shutdown_cb(
-    GPtrArray *arguments
-) {
+LightDM_shutdown_cb(GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = get_global_context();
   GError *err = NULL;
@@ -213,13 +208,13 @@ LightDM_shutdown_cb(
  * Start a session for the authenticated user
  */
 static JSCValue *
-LightDM_start_session_cb(
-    GPtrArray *arguments
-) {
+LightDM_start_session_cb(GPtrArray *arguments)
+{
   JSCContext *context = get_global_context();
 
   gchar *session = NULL;
-  if (arguments->len == 0) return jsc_value_new_boolean(context, false);
+  if (arguments->len == 0)
+    return jsc_value_new_boolean(context, false);
   JSCValue *v = arguments->pdata[0];
   session = js_value_to_string_or_null(v);
 
@@ -237,9 +232,8 @@ LightDM_start_session_cb(
  * Triggers the system to suspend/sleep
  */
 static JSCValue *
-LightDM_suspend_cb(
-    GPtrArray *arguments
-) {
+LightDM_suspend_cb(GPtrArray *arguments)
+{
   (void) arguments;
   JSCContext *context = get_global_context();
   GError *err = NULL;
@@ -635,58 +629,38 @@ LightDM_users_getter_cb()
 /* LightDM callbacks */
 
 static void
-authentication_complete_cb(
-    LightDMGreeter *greeter
-) {
+authentication_complete_cb(LightDMGreeter *greeter)
+{
   (void) greeter;
   JSCContext *context = get_global_context();
 
-  GVariant *parameters = jsc_parameters_to_g_variant_array(
-      context,
-      "authentication_complete",
-      NULL
-      );
+  GVariant *parameters = jsc_parameters_to_g_variant_array(context, "authentication_complete", NULL);
 
   WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
   for (guint i = 0; i < greeter_browsers->len; i++) {
-    GtkBrowser *browser =  greeter_browsers->pdata[i];
-    webkit_web_view_send_message_to_page(
-        browser->web_view,
-        message,
-        NULL, NULL, NULL
-        );
+    GtkBrowser *browser = greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(browser->web_view, message, NULL, NULL, NULL);
   }
 }
 static void
-autologin_timer_expired_cb(
-    LightDMGreeter *greeter
-) {
+autologin_timer_expired_cb(LightDMGreeter *greeter)
+{
   (void) greeter;
   JSCContext *context = get_global_context();
 
-  GVariant *parameters = jsc_parameters_to_g_variant_array(
-      context,
-      "autologin_timer_expired",
-      NULL
-      );
+  GVariant *parameters = jsc_parameters_to_g_variant_array(context, "autologin_timer_expired", NULL);
 
   WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
   for (guint i = 0; i < greeter_browsers->len; i++) {
-    GtkBrowser *browser =  greeter_browsers->pdata[i];
-    webkit_web_view_send_message_to_page(
-        browser->web_view,
-        message,
-        NULL, NULL, NULL
-        );
+    GtkBrowser *browser = greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(browser->web_view, message, NULL, NULL, NULL);
   }
 }
-static void show_prompt_cb(
-    LightDMGreeter *greeter,
-    const gchar *text,
-    LightDMPromptType type
-) {
+static void
+show_prompt_cb(LightDMGreeter *greeter, const gchar *text, LightDMPromptType type)
+{
   (void) greeter;
   JSCContext *context = get_global_context();
 
@@ -694,29 +668,19 @@ static void show_prompt_cb(
   g_ptr_array_add(arr, jsc_value_new_string(context, text));
   g_ptr_array_add(arr, jsc_value_new_number(context, type));
 
-  GVariant *parameters = jsc_parameters_to_g_variant_array(
-      context,
-      "show_prompt",
-      arr
-      );
+  GVariant *parameters = jsc_parameters_to_g_variant_array(context, "show_prompt", arr);
 
   WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
   for (guint i = 0; i < greeter_browsers->len; i++) {
-    GtkBrowser *browser =  greeter_browsers->pdata[i];
-    webkit_web_view_send_message_to_page(
-        browser->web_view,
-        message,
-        NULL, NULL, NULL
-        );
+    GtkBrowser *browser = greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(browser->web_view, message, NULL, NULL, NULL);
   }
   g_ptr_array_free(arr, true);
 }
-static void show_message_cb(
-    LightDMGreeter *greeter,
-    const gchar *text,
-    LightDMMessageType type
-) {
+static void
+show_message_cb(LightDMGreeter *greeter, const gchar *text, LightDMMessageType type)
+{
   (void) greeter;
   JSCContext *context = get_global_context();
 
@@ -724,21 +688,13 @@ static void show_message_cb(
   g_ptr_array_add(arr, jsc_value_new_string(context, text));
   g_ptr_array_add(arr, jsc_value_new_number(context, type));
 
-  GVariant *parameters = jsc_parameters_to_g_variant_array(
-      context,
-      "show_message",
-      arr
-      );
+  GVariant *parameters = jsc_parameters_to_g_variant_array(context, "show_message", arr);
 
   WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
   for (guint i = 0; i < greeter_browsers->len; i++) {
-    GtkBrowser *browser =  greeter_browsers->pdata[i];
-    webkit_web_view_send_message_to_page(
-        browser->web_view,
-        message,
-        NULL, NULL, NULL
-        );
+    GtkBrowser *browser = greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(browser->web_view, message, NULL, NULL, NULL);
   }
   g_ptr_array_free(arr, true);
 }
@@ -746,38 +702,21 @@ static void show_message_cb(
 /**
  * Connect LightDM signals to their callbacks
  */
-void LightDM_connect_signals() {
-  g_signal_connect(
-    Greeter,
-    "authentication-complete",
-    G_CALLBACK(authentication_complete_cb),
-    NULL
-  );
-  g_signal_connect(
-    Greeter,
-    "autologin-timer-expired",
-    G_CALLBACK(autologin_timer_expired_cb),
-    NULL
-  );
-  g_signal_connect(
-    Greeter,
-    "show-prompt",
-    G_CALLBACK(show_prompt_cb),
-    NULL
-  );
-  g_signal_connect(
-    Greeter,
-    "show-message",
-    G_CALLBACK(show_message_cb),
-    NULL
-  );
+void
+LightDM_connect_signals()
+{
+  g_signal_connect(Greeter, "authentication-complete", G_CALLBACK(authentication_complete_cb), NULL);
+  g_signal_connect(Greeter, "autologin-timer-expired", G_CALLBACK(autologin_timer_expired_cb), NULL);
+  g_signal_connect(Greeter, "show-prompt", G_CALLBACK(show_prompt_cb), NULL);
+  g_signal_connect(Greeter, "show-message", G_CALLBACK(show_message_cb), NULL);
 }
 
 /**
  * LightDM Class constructor, should be called only once in sea-greeter's life
  */
 static void
-LightDM_constructor() {
+LightDM_constructor()
+{
   GError *err = NULL;
 
   LightDM_connect_signals();
@@ -792,14 +731,9 @@ LightDM_constructor() {
   if (user != NULL) {
     gchar *user_data_dir = lightdm_greeter_ensure_shared_data_dir_sync(Greeter, lightdm_user_get_name(user), &err);
 
-    int ind = g_string_get_last_index_of(
-        g_string_new(user_data_dir),
-        g_string_new("/")
-        );
+    int ind = g_string_get_last_index_of(g_string_new(user_data_dir), g_string_new("/"));
 
-    shared_data_directory = g_string_new(
-        g_utf8_substring(user_data_dir, 0, ind)
-        );
+    shared_data_directory = g_string_new(g_utf8_substring(user_data_dir, 0, ind));
   } else {
     shared_data_directory = g_string_new("");
   }
@@ -809,28 +743,28 @@ LightDM_constructor() {
 
 /*static void*/
 /*ready_event_loaded(WebKitWebPage *web_page, JSCContext *context) {*/
-  /*(void) web_page;*/
-  /*JSCValue *global_object = jsc_context_get_global_object(context);*/
+/*(void) web_page;*/
+/*JSCValue *global_object = jsc_context_get_global_object(context);*/
 
-  /*JSCValue *dispatch_event = jsc_value_object_get_property(global_object, "dispatchEvent");*/
-  /*JSCValue *parameters[] = {*/
-    /*ready_event,*/
-    /*NULL*/
-  /*};*/
-  /*(void) jsc_value_function_callv(dispatch_event, 1, parameters);*/
+/*JSCValue *dispatch_event = jsc_value_object_get_property(global_object, "dispatchEvent");*/
+/*JSCValue *parameters[] = {*/
+/*ready_event,*/
+/*NULL*/
+/*};*/
+/*(void) jsc_value_function_callv(dispatch_event, 1, parameters);*/
 /*}*/
 
 static char *
-g_variant_to_string(GVariant *variant) {
+g_variant_to_string(GVariant *variant)
+{
   if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
     return NULL;
   const gchar *value = g_variant_get_string(variant, NULL);
   return g_strdup(value);
 }
 static GPtrArray *
-jsc_array_to_g_ptr_array(
-    JSCValue *jsc_array
-) {
+jsc_array_to_g_ptr_array(JSCValue *jsc_array)
+{
   if (!jsc_value_is_array(jsc_array)) {
     return NULL;
   }
@@ -847,11 +781,8 @@ jsc_array_to_g_ptr_array(
 }
 
 static void
-handle_lightdm_property(
-    WebKitUserMessage *message,
-    const gchar *method,
-    GPtrArray *parameters
-) {
+handle_lightdm_property(WebKitUserMessage *message, const gchar *method, GPtrArray *parameters)
+{
   (void) parameters;
 
   int i = 0;
@@ -862,13 +793,13 @@ handle_lightdm_property(
 
       if (parameters->len > 0) {
         JSCValue *param = parameters->pdata[0];
-        ((void (*)(JSCValue*))current->setter)(param);
+        ((void (*)(JSCValue *)) current->setter)(param);
         WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
         webkit_user_message_send_reply(message, empty_msg);
         break;
       }
 
-      JSCValue *jsc_value = ((JSCValue* (*)(void))current->getter)();
+      JSCValue *jsc_value = ((JSCValue * (*) (void) ) current->getter)();
       const gchar *json_value = jsc_value_to_json(jsc_value, 0);
       /*printf("JSON value: '%s'\n", json_value);*/
 
@@ -883,18 +814,15 @@ handle_lightdm_property(
   }
 }
 static void
-handle_lightdm_method(
-    WebKitUserMessage *message,
-    const gchar *method,
-    GPtrArray *parameters
-) {
+handle_lightdm_method(WebKitUserMessage *message, const gchar *method, GPtrArray *parameters)
+{
 
   int i = 0;
   struct JSCClassMethod *current = LightDM_object.methods->pdata[i];
   while (current->name != NULL) {
     /*printf("Current: %d - %s\n", i, current->name);*/
     if (g_strcmp0(current->name, method) == 0) {
-      JSCValue *jsc_value = ((JSCValue* (*)(GPtrArray*))current->callback)(parameters);
+      JSCValue *jsc_value = ((JSCValue * (*) (GPtrArray *) ) current->callback)(parameters);
       const gchar *json_value = jsc_value_to_json(jsc_value, 0);
       /*printf("JSON value: '%s'\n", json_value);*/
 
@@ -910,13 +838,12 @@ handle_lightdm_method(
 }
 
 void
-handle_lightdm_accessor(
-    WebKitWebView *web_view,
-    WebKitUserMessage *message
-) {
+handle_lightdm_accessor(WebKitWebView *web_view, WebKitUserMessage *message)
+{
   (void) web_view;
   const char *name = webkit_user_message_get_name(message);
-  if (g_strcmp0(name, "lightdm") != 0) return;
+  if (g_strcmp0(name, "lightdm") != 0)
+    return;
 
   WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
   GVariant *msg_param = webkit_user_message_get_parameters(message);
@@ -962,7 +889,8 @@ handle_lightdm_accessor(
  * Initialize the LightDM environment
  */
 void
-LightDM_initialize() {
+LightDM_initialize()
+{
 
   UserList = lightdm_user_list_get_instance();
   Greeter = lightdm_greeter_new();
@@ -974,57 +902,57 @@ LightDM_initialize() {
    * It just serves as a help.
    */
   struct JSCClassProperty LightDM_properties[] = {
-    {"authentication_user", G_CALLBACK(LightDM_authentication_user_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"autologin_guest", G_CALLBACK(LightDM_autologin_guest_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"autologin_timeout", G_CALLBACK(LightDM_autologin_timeout_getter_cb), NULL, G_TYPE_INT},
-    {"autologin_user", G_CALLBACK(LightDM_autologin_user_getter_cb), NULL, G_TYPE_STRING},
+    { "authentication_user", G_CALLBACK(LightDM_authentication_user_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "autologin_guest", G_CALLBACK(LightDM_autologin_guest_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "autologin_timeout", G_CALLBACK(LightDM_autologin_timeout_getter_cb), NULL, G_TYPE_INT },
+    { "autologin_user", G_CALLBACK(LightDM_autologin_user_getter_cb), NULL, G_TYPE_STRING },
 
-    {"can_hibernate", G_CALLBACK(LightDM_can_hibernate_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"can_restart", G_CALLBACK(LightDM_can_restart_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"can_shutdown", G_CALLBACK(LightDM_can_shutdown_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"can_suspend", G_CALLBACK(LightDM_can_suspend_getter_cb), NULL, G_TYPE_BOOLEAN},
+    { "can_hibernate", G_CALLBACK(LightDM_can_hibernate_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "can_restart", G_CALLBACK(LightDM_can_restart_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "can_shutdown", G_CALLBACK(LightDM_can_shutdown_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "can_suspend", G_CALLBACK(LightDM_can_suspend_getter_cb), NULL, G_TYPE_BOOLEAN },
 
-    {"brightness", G_CALLBACK(LightDM_brightness_getter_cb), G_CALLBACK(LightDM_brightness_setter_cb), G_TYPE_INT},
+    { "brightness", G_CALLBACK(LightDM_brightness_getter_cb), G_CALLBACK(LightDM_brightness_setter_cb), G_TYPE_INT },
 
-    {"default_session", G_CALLBACK(LightDM_default_session_getter_cb), NULL, G_TYPE_STRING},
-    {"has_guest_account", G_CALLBACK(LightDM_has_guest_account_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"hide_users_hint", G_CALLBACK(LightDM_hide_users_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"hostname", G_CALLBACK(LightDM_hostname_getter_cb), NULL, G_TYPE_STRING},
+    { "default_session", G_CALLBACK(LightDM_default_session_getter_cb), NULL, G_TYPE_STRING },
+    { "has_guest_account", G_CALLBACK(LightDM_has_guest_account_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "hide_users_hint", G_CALLBACK(LightDM_hide_users_hint_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "hostname", G_CALLBACK(LightDM_hostname_getter_cb), NULL, G_TYPE_STRING },
 
-    {"in_authentication", G_CALLBACK(LightDM_in_authentication_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"is_authenticated", G_CALLBACK(LightDM_is_authenticated_getter_cb), NULL, G_TYPE_BOOLEAN},
+    { "in_authentication", G_CALLBACK(LightDM_in_authentication_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "is_authenticated", G_CALLBACK(LightDM_is_authenticated_getter_cb), NULL, G_TYPE_BOOLEAN },
 
-    {"language", G_CALLBACK(LightDM_language_getter_cb), NULL, JSC_TYPE_VALUE},
-    {"languages", G_CALLBACK(LightDM_languages_getter_cb), NULL, JSC_TYPE_VALUE},
-    {"layout", G_CALLBACK(LightDM_layout_getter_cb), G_CALLBACK(LightDM_layout_setter_cb), JSC_TYPE_VALUE},
-    {"layouts", G_CALLBACK(LightDM_layouts_getter_cb), NULL, JSC_TYPE_VALUE},
+    { "language", G_CALLBACK(LightDM_language_getter_cb), NULL, JSC_TYPE_VALUE },
+    { "languages", G_CALLBACK(LightDM_languages_getter_cb), NULL, JSC_TYPE_VALUE },
+    { "layout", G_CALLBACK(LightDM_layout_getter_cb), G_CALLBACK(LightDM_layout_setter_cb), JSC_TYPE_VALUE },
+    { "layouts", G_CALLBACK(LightDM_layouts_getter_cb), NULL, JSC_TYPE_VALUE },
 
-    {"lock_hint", G_CALLBACK(LightDM_lock_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"remote_sessions", G_CALLBACK(LightDM_remote_sessions_getter_cb), NULL, JSC_TYPE_VALUE},
-    {"select_guest_hint", G_CALLBACK(LightDM_select_guest_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"select_user_hint", G_CALLBACK(LightDM_select_user_hint_getter_cb), NULL, G_TYPE_STRING},
-    {"sessions", G_CALLBACK(LightDM_sessions_getter_cb), NULL, JSC_TYPE_VALUE},
-    {"shared_data_directory", G_CALLBACK(LightDM_shared_data_directory_getter_cb), NULL, G_TYPE_STRING},
-    {"show_manual_login_hint", G_CALLBACK(LightDM_show_manual_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"show_remote_login_hint", G_CALLBACK(LightDM_show_remote_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"users", G_CALLBACK(LightDM_users_getter_cb), NULL, JSC_TYPE_VALUE},
+    { "lock_hint", G_CALLBACK(LightDM_lock_hint_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "remote_sessions", G_CALLBACK(LightDM_remote_sessions_getter_cb), NULL, JSC_TYPE_VALUE },
+    { "select_guest_hint", G_CALLBACK(LightDM_select_guest_hint_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "select_user_hint", G_CALLBACK(LightDM_select_user_hint_getter_cb), NULL, G_TYPE_STRING },
+    { "sessions", G_CALLBACK(LightDM_sessions_getter_cb), NULL, JSC_TYPE_VALUE },
+    { "shared_data_directory", G_CALLBACK(LightDM_shared_data_directory_getter_cb), NULL, G_TYPE_STRING },
+    { "show_manual_login_hint", G_CALLBACK(LightDM_show_manual_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "show_remote_login_hint", G_CALLBACK(LightDM_show_remote_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN },
+    { "users", G_CALLBACK(LightDM_users_getter_cb), NULL, JSC_TYPE_VALUE },
 
-    {NULL, NULL, NULL, 0},
+    { NULL, NULL, NULL, 0 },
   };
   struct JSCClassMethod LightDM_methods[] = {
-    {"authenticate", G_CALLBACK(LightDM_authenticate_cb), G_TYPE_BOOLEAN},
-    {"authenticate_as_guest", G_CALLBACK(LightDM_authenticate_as_guest_cb), G_TYPE_BOOLEAN},
-    {"cancel_authentication", G_CALLBACK(LightDM_cancel_authentication_cb), G_TYPE_BOOLEAN},
-    {"cancel_autologin", G_CALLBACK(LightDM_cancel_autologin_cb), G_TYPE_BOOLEAN},
-    {"hibernate", G_CALLBACK(LightDM_hibernate_cb), G_TYPE_BOOLEAN},
-    {"respond", G_CALLBACK(LightDM_respond_cb), G_TYPE_BOOLEAN},
-    {"restart", G_CALLBACK(LightDM_restart_cb), G_TYPE_BOOLEAN},
-    {"set_language", G_CALLBACK(LightDM_set_language_cb), G_TYPE_BOOLEAN},
-    {"shutdown", G_CALLBACK(LightDM_shutdown_cb), G_TYPE_BOOLEAN},
-    {"start_session", G_CALLBACK(LightDM_start_session_cb), G_TYPE_BOOLEAN},
-    {"suspend", G_CALLBACK(LightDM_suspend_cb), G_TYPE_BOOLEAN},
+    { "authenticate", G_CALLBACK(LightDM_authenticate_cb), G_TYPE_BOOLEAN },
+    { "authenticate_as_guest", G_CALLBACK(LightDM_authenticate_as_guest_cb), G_TYPE_BOOLEAN },
+    { "cancel_authentication", G_CALLBACK(LightDM_cancel_authentication_cb), G_TYPE_BOOLEAN },
+    { "cancel_autologin", G_CALLBACK(LightDM_cancel_autologin_cb), G_TYPE_BOOLEAN },
+    { "hibernate", G_CALLBACK(LightDM_hibernate_cb), G_TYPE_BOOLEAN },
+    { "respond", G_CALLBACK(LightDM_respond_cb), G_TYPE_BOOLEAN },
+    { "restart", G_CALLBACK(LightDM_restart_cb), G_TYPE_BOOLEAN },
+    { "set_language", G_CALLBACK(LightDM_set_language_cb), G_TYPE_BOOLEAN },
+    { "shutdown", G_CALLBACK(LightDM_shutdown_cb), G_TYPE_BOOLEAN },
+    { "start_session", G_CALLBACK(LightDM_start_session_cb), G_TYPE_BOOLEAN },
+    { "suspend", G_CALLBACK(LightDM_suspend_cb), G_TYPE_BOOLEAN },
 
-    {NULL, NULL, 0},
+    { NULL, NULL, 0 },
   };
 
   GPtrArray *ldm_properties = g_ptr_array_new_full(G_N_ELEMENTS(LightDM_properties), NULL);

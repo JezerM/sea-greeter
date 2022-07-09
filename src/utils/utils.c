@@ -1,16 +1,13 @@
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <glib.h>
 #include <jsc/jsc.h>
 
 GVariant *
-jsc_parameters_to_g_variant_array(
-    JSCContext *context,
-    const gchar *name,
-    GPtrArray *parameters
-) {
+jsc_parameters_to_g_variant_array(JSCContext *context, const gchar *name, GPtrArray *parameters)
+{
   JSCValue *jsc_params;
   if (parameters == NULL) {
     jsc_params = jsc_value_new_array(context, G_TYPE_NONE);
@@ -23,20 +20,14 @@ jsc_parameters_to_g_variant_array(
 
   GVariant *param_arr[] = { name_p, params };
 
-  GVariant *result = g_variant_new_array(
-      G_VARIANT_TYPE_STRING,
-      param_arr,
-      G_N_ELEMENTS(param_arr)
-      );
+  GVariant *result = g_variant_new_array(G_VARIANT_TYPE_STRING, param_arr, G_N_ELEMENTS(param_arr));
 
   return result;
 }
 
 JSCValue *
-g_variant_reply_to_jsc_value(
-    JSCContext *context,
-    GVariant *reply
-) {
+g_variant_reply_to_jsc_value(JSCContext *context, GVariant *reply)
+{
   if (reply == NULL) {
     return NULL;
   }

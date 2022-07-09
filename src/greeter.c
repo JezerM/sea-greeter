@@ -1,15 +1,15 @@
-#include <gtk/gtk.h>
-#include <webkit2/webkit2.h>
-#include <locale.h>
 #include <gio/gmenu.h>
+#include <gtk/gtk.h>
+#include <locale.h>
+#include <webkit2/webkit2.h>
 
 #include "config.h"
+#include "logger.h"
 #include "settings.h"
 #include "theme.h"
-#include "logger.h"
 
-#include "greeter.h"
 #include "bridge/lightdm.h"
+#include "greeter.h"
 
 static GdkWindow *root_window;
 static GdkDisplay *default_display;
@@ -19,7 +19,8 @@ extern GreeterConfig *greeter_config;
 GPtrArray *greeter_browsers = NULL;
 
 static void
-destroy_window_cb(GtkWidget* widget, GtkWidget* window) {
+destroy_window_cb(GtkWidget *widget, GtkWidget *window)
+{
   (void) widget;
   (void) window;
 
@@ -32,7 +33,8 @@ destroy_window_cb(GtkWidget* widget, GtkWidget* window) {
   }
 }
 static void
-show_window_cb(GtkWidget* widget, GtkWidget* window) {
+show_window_cb(GtkWidget *widget, GtkWidget *window)
+{
   (void) widget;
   (void) window;
   logger_debug("Sea Greeter started");
@@ -42,7 +44,8 @@ show_window_cb(GtkWidget* widget, GtkWidget* window) {
  * Destroy window when web-view is closed
  */
 static gboolean
-close_web_view_cb(WebKitWebView* web_view, GtkBrowser *browser) {
+close_web_view_cb(WebKitWebView *web_view, GtkBrowser *browser)
+{
   (void) web_view;
   gtk_widget_destroy(GTK_WIDGET(browser->window));
   g_ptr_array_remove(greeter_browsers, browser);
@@ -54,9 +57,10 @@ close_web_view_cb(WebKitWebView* web_view, GtkBrowser *browser) {
  * Enable developer tools or web inspector
  */
 static void
-enable_developer_tools(WebKitWebView* web_view) {
-  WebKitSettings *settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW(web_view));
-  g_object_set (G_OBJECT(settings), "enable-developer-extras", TRUE, NULL);
+enable_developer_tools(WebKitWebView *web_view)
+{
+  WebKitSettings *settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(web_view));
+  g_object_set(G_OBJECT(settings), "enable-developer-extras", TRUE, NULL);
 
   WebKitWebInspector *inspector = webkit_web_view_get_inspector(web_view);
   webkit_web_inspector_attach(inspector);
@@ -66,27 +70,23 @@ enable_developer_tools(WebKitWebView* web_view) {
  * Initialize web extensions
  */
 static void
-initialize_web_extensions(WebKitWebContext *context, gpointer user_data) {
+initialize_web_extensions(WebKitWebContext *context, gpointer user_data)
+{
   (void) user_data;
   /* Web Extensions get a different ID for each Web Process */
   static guint32 unique_id = 0;
 
   logger_debug("Extension initialized");
 
-  webkit_web_context_set_web_extensions_directory (
-     context, WEB_EXTENSIONS_DIR);
-  webkit_web_context_set_web_extensions_initialization_user_data (
-     context, g_variant_new_uint32 (unique_id++));
+  webkit_web_context_set_web_extensions_directory(context, WEB_EXTENSIONS_DIR);
+  webkit_web_context_set_web_extensions_initialization_user_data(context, g_variant_new_uint32(unique_id++));
 }
 
 /*
  * Callback to be executed when a web-view user message is received
  */
 static void
-web_view_user_message_received(
-    WebKitWebView *web_view,
-    WebKitUserMessage *message,
-    gpointer user_data)
+web_view_user_message_received(WebKitWebView *web_view, WebKitUserMessage *message, gpointer user_data)
 {
   (void) user_data;
   const char *name = webkit_user_message_get_name(message);
@@ -107,15 +107,14 @@ web_view_user_message_received(
  * Set keybinding accelerators
  */
 static void
-set_keybindings() {
+set_keybindings()
+{
   const struct accelerator {
     const gchar *action;
     const gchar *accelerators[9];
-  } accels[] = {
-    { "app.quit", { "<Control>Q", NULL } },
-    { "win.toggle-inspector", { "<shift><Primary>I", "F12", NULL } },
-    { NULL, { NULL } }
-  };
+  } accels[] = { { "app.quit", { "<Control>Q", NULL } },
+                 { "win.toggle-inspector", { "<shift><Primary>I", "F12", NULL } },
+                 { NULL, { NULL } } };
 
   GApplication *app = g_application_get_default();
 
@@ -123,16 +122,13 @@ set_keybindings() {
   for (int i = 0; i < accel_count; i++) {
     if (accels[i].action == NULL)
       break;
-    gtk_application_set_accels_for_action(
-        GTK_APPLICATION(app),
-        accels[i].action,
-        accels[i].accelerators
-        );
+    gtk_application_set_accels_for_action(GTK_APPLICATION(app), accels[i].action, accels[i].accelerators);
   }
 }
 
 static void
-print_info() {
+print_info()
+{
   logger_debug("INFO");
 }
 
@@ -140,7 +136,8 @@ print_info() {
  * Quit application forcedly
  */
 static void
-app_quit_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+app_quit_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
   (void) action;
   (void) parameter;
   (void) user_data;
@@ -152,7 +149,8 @@ app_quit_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
  * Toggle web view inspector
  */
 static void
-toggle_inspector_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+toggle_inspector_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
   (void) action;
   (void) parameter;
   (void) user_data;
@@ -197,34 +195,24 @@ toggle_inspector_cb(GSimpleAction *action, GVariant *parameter, gpointer user_da
  * Initialize app actions
  */
 static void
-initialize_actions (GtkApplication *app)
+initialize_actions(GtkApplication *app)
 {
   static const GActionEntry app_entries[] = {
-    { "info", print_info, NULL, NULL, NULL, {0}},
-    { "quit", app_quit_cb, NULL, NULL, NULL , {0}},
+    { "info", print_info, NULL, NULL, NULL, { 0 } },
+    { "quit", app_quit_cb, NULL, NULL, NULL, { 0 } },
   };
   static const GActionEntry win_entries[] = {
-    { "toggle-inspector", toggle_inspector_cb, NULL, NULL, NULL , {0}},
+    { "toggle-inspector", toggle_inspector_cb, NULL, NULL, NULL, { 0 } },
   };
 
-  g_action_map_add_action_entries(
-      G_ACTION_MAP(app),
-      app_entries,
-      G_N_ELEMENTS(app_entries),
-      app
-      );
+  g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries, G_N_ELEMENTS(app_entries), app);
 
   GList *windows = gtk_application_get_windows(app);
 
   GList *curr = windows;
   while (curr != NULL) {
     GtkWindow *win = curr->data;
-    g_action_map_add_action_entries(
-        G_ACTION_MAP(win),
-        win_entries,
-        G_N_ELEMENTS(win_entries),
-        win
-        );
+    g_action_map_add_action_entries(G_ACTION_MAP(win), win_entries, G_N_ELEMENTS(win_entries), win);
     curr = curr->next;
   }
 }
@@ -233,7 +221,8 @@ initialize_actions (GtkApplication *app)
  * Create menu bar Model
  */
 static GMenu *
-initialize_menu_bar() {
+initialize_menu_bar()
+{
   GMenu *menu_model = g_menu_new();
 
   GMenu *file_model = g_menu_new();
@@ -264,8 +253,7 @@ web_view_context_menu(
     WebKitContextMenu *context_menu,
     GdkEvent *event,
     WebKitHitTestResult *hit_test_result,
-    gpointer user_data
-    )
+    gpointer user_data)
 {
   (void) webView;
   (void) context_menu;
@@ -276,7 +264,8 @@ web_view_context_menu(
 }
 
 static WebKitWebView *
-create_web_view() {
+create_web_view()
+{
   WebKitWebView *web_view = WEBKIT_WEB_VIEW(webkit_web_view_new());
 
   WebKitSettings *settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(web_view));
@@ -289,19 +278,14 @@ create_web_view() {
   WebKitWebContext *context = webkit_web_view_get_context(web_view);
   webkit_web_context_set_cache_model(context, WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER);
 
-  g_signal_connect (web_view,
-                   "user-message-received",
-                    G_CALLBACK (web_view_user_message_received),
-                    NULL);
-  g_signal_connect (web_view,
-                   "context-menu",
-                    G_CALLBACK (web_view_context_menu),
-                    NULL);
+  g_signal_connect(web_view, "user-message-received", G_CALLBACK(web_view_user_message_received), NULL);
+  g_signal_connect(web_view, "context-menu", G_CALLBACK(web_view_context_menu), NULL);
   return web_view;
 }
 
-static GtkBrowser*
-create_browser(GtkApplication *app, WebKitWebView *web_view) {
+static GtkBrowser *
+create_browser(GtkApplication *app, WebKitWebView *web_view)
+{
   GtkApplicationWindow *window = GTK_APPLICATION_WINDOW(gtk_application_window_new(app));
   gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
 
@@ -331,15 +315,17 @@ create_browser(GtkApplication *app, WebKitWebView *web_view) {
  * Occurs after ":startup"
  */
 static void
-app_activate_cb(GtkApplication *app, gpointer user_data) {
+app_activate_cb(GtkApplication *app, gpointer user_data)
+{
   (void) user_data;
 
   LightDM_initialize();
 
-  g_signal_connect(webkit_web_context_get_default(),
-                   "initialize-web-extensions",
-                    G_CALLBACK(initialize_web_extensions),
-                    NULL);
+  g_signal_connect(
+      webkit_web_context_get_default(),
+      "initialize-web-extensions",
+      G_CALLBACK(initialize_web_extensions),
+      NULL);
 
   greeter_browsers = g_ptr_array_new();
 
@@ -364,12 +350,15 @@ app_activate_cb(GtkApplication *app, gpointer user_data) {
  * Occurs before ":activate"
  */
 static void
-app_startup_cb(GtkApplication *app, gpointer user_data) {
+app_startup_cb(GtkApplication *app, gpointer user_data)
+{
   (void) app;
   (void) user_data;
 }
 
-int main(int argc, char** argv) {
+int
+main(int argc, char **argv)
+{
   gtk_init(&argc, &argv);
 
   GtkApplication *app = gtk_application_new("com.github.jezerm.sea-greeter", G_APPLICATION_FLAGS_NONE);
@@ -389,9 +378,9 @@ int main(int argc, char** argv) {
   webkit_application_info_set_name(web_info, "com.github.jezerm.sea-greeter");
 
   /*g_signal_connect (webkit_web_context_get_default(),*/
-                   /*"initialize-web-extensions",*/
-                    /*G_CALLBACK (initialize_web_extensions),*/
-                    /*NULL);*/
+  /*"initialize-web-extensions",*/
+  /*G_CALLBACK (initialize_web_extensions),*/
+  /*NULL);*/
 
   g_signal_connect(app, "activate", G_CALLBACK(app_activate_cb), NULL);
   g_signal_connect(app, "startup", G_CALLBACK(app_startup_cb), NULL);
