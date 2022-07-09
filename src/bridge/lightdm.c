@@ -710,6 +710,7 @@ static void show_prompt_cb(
         NULL, NULL, NULL
         );
   }
+  g_ptr_array_free(arr, true);
 }
 static void show_message_cb(
     LightDMGreeter *greeter,
@@ -739,6 +740,7 @@ static void show_message_cb(
         NULL, NULL, NULL
         );
   }
+  g_ptr_array_free(arr, true);
 }
 
 /**
@@ -894,7 +896,7 @@ handle_lightdm_method(
     if (g_strcmp0(current->name, method) == 0) {
       JSCValue *jsc_value = ((JSCValue* (*)(GPtrArray*))current->callback)(parameters);
       const gchar *json_value = jsc_value_to_json(jsc_value, 0);
-      printf("JSON value: '%s'\n", json_value);
+      /*printf("JSON value: '%s'\n", json_value);*/
 
       GVariant *value = g_variant_new_string(json_value);
       WebKitUserMessage *reply = webkit_user_message_new("reply", value);
@@ -939,12 +941,11 @@ handle_lightdm_accessor(
   method = g_variant_to_string(method_var);
   const gchar *json_params = g_variant_to_string(params_var);
   parameters = jsc_value_new_from_json(context, json_params);
-  printf("Handling: '%s'\n", method);
-  printf("JSON params: '%s'\n", json_params);
+  /*printf("Handling: '%s'\n", method);*/
+  /*printf("JSON params: '%s'\n", json_params);*/
 
   if (method == NULL) {
     webkit_user_message_send_reply(message, empty_msg);
-    /*g_ptr_array_free(parameters, true);*/
     return;
   }
 
@@ -954,7 +955,7 @@ handle_lightdm_accessor(
   handle_lightdm_method(message, method, g_array);
 
   g_free(method);
-  /*g_ptr_array_free(parameters, true);*/
+  g_ptr_array_free(g_array, true);
 }
 
 /**
@@ -1020,13 +1021,6 @@ LightDM_initialize() {
     {"suspend", G_CALLBACK(LightDM_suspend_cb), G_TYPE_BOOLEAN},
 
     {NULL, NULL, 0},
-  };
-  const struct JSCClassSignal LightDM_signals[] = {
-    {"authentication_complete"},
-    {"autologin_timer_expired"},
-    {"show_prompt"},
-    {"show_message"},
-    {NULL},
   };
 
   GPtrArray *ldm_properties = g_ptr_array_new_full(G_N_ELEMENTS(LightDM_properties), NULL);
