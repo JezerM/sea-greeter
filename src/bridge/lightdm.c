@@ -867,10 +867,10 @@ handle_lightdm_property(
       }
 
       JSCValue *jsc_value = ((JSCValue* (*)(void))current->getter)();
-      const gchar *valjson_value = jsc_value_to_json(jsc_value, 0);
+      const gchar *json_value = jsc_value_to_json(jsc_value, 0);
       /*printf("JSON value: '%s'\n", json_value);*/
 
-      GVariant *value = g_variant_new_string(valjson_value);
+      GVariant *value = g_variant_new_string(json_value);
       WebKitUserMessage *reply = webkit_user_message_new("reply", value);
 
       webkit_user_message_send_reply(message, reply);

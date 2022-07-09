@@ -7,6 +7,8 @@
 #include <jsc/jsc.h>
 #include <webkit2/webkit2.h>
 
+#include "utils/utils.h"
+
 typedef struct {
   gboolean received;
   WebKitUserMessage *message;

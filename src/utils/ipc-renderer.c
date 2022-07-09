@@ -85,6 +85,8 @@ ipc_renderer_send_message_sync_with_arguments(
     const char *target,
     GPtrArray *arguments
 ) {
+  if (!JSC_IS_CONTEXT(jsc_context))
+    return NULL;
   GVariant *parameters = jsc_parameters_to_g_variant_array(
       jsc_context,
       target,

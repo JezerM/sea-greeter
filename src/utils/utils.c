@@ -42,5 +42,8 @@ g_variant_reply_to_jsc_value(
   }
   const gchar *json_value = g_variant_get_string(reply, NULL);
   JSCValue *value = jsc_value_new_from_json(context, json_value);
+  if (jsc_value_is_null(value)) {
+    return NULL;
+  }
   return value;
 }
