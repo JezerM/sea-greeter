@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "bridge/utils.h"
-#include "bridge/lightdm-signal.h"
 
 /**
  * Converts a JSCValue to a string
@@ -92,27 +91,5 @@ void initialize_class_methods(
         );
     i++;
     current = methods[i];
-  }
-}
-
-/**
- * Initialize class signals
- */
-void initialize_object_signals(
-    JSCContext *js_context,
-    JSCValue *object,
-    const struct JSCClassSignal signals[])
-{
-  int i = 0;
-  struct JSCClassSignal current = signals[i];
-  while (current.name != NULL) {
-    JSCValue *signal = LightDM_signal_new(js_context, current.name);
-    jsc_value_object_set_property(
-        object,
-        current.name,
-        signal
-        );
-    i++;
-    current = signals[i];
   }
 }

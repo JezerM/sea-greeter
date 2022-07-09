@@ -8,10 +8,12 @@
 
 #include "settings.h"
 #include "logger.h"
+
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
-#include "bridge/lightdm-signal.h"
+
 #include "utils/ipc-renderer.h"
+#include "extension/lightdm-signal.h"
 #include "extension/utils.h"
 
 /*extern WebKitWebExtension *WebExtension;*/
@@ -520,13 +522,13 @@ LightDM_Test_initialize(
 
     {NULL, NULL, 0},
   };
-  /*const struct JSCClassSignal LightDM_signals[] = {*/
-    /*{"authentication_complete"},*/
-    /*{"autologin_timer_expired"},*/
-    /*{"show_prompt"},*/
-    /*{"show_message"},*/
-    /*{NULL},*/
-  /*};*/
+  const struct JSCClassSignal LightDM_signals[] = {
+    {"authentication_complete"},
+    {"autologin_timer_expired"},
+    {"show_prompt"},
+    {"show_message"},
+    {NULL},
+  };
 
   initialize_class_properties(LightDM_class, LightDM_properties);
   initialize_class_methods(LightDM_class, LightDM_methods);
@@ -538,7 +540,7 @@ LightDM_Test_initialize(
 
   JSCValue *ldm_greeter_object = jsc_value_new_object(js_context, LightDM_object, LightDM_class);
 
-  /*initialize_object_signals(js_context, ldm_greeter_object, LightDM_signals);*/
+  initialize_object_signals(js_context, ldm_greeter_object, LightDM_signals);
 
   LightDM_object->value = ldm_greeter_object;
 
