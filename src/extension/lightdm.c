@@ -261,7 +261,7 @@ LightDM_authentication_user_getter_cb(ldm_object *instance)
       NULL
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -312,7 +312,7 @@ LightDM_autologin_user_getter_cb(ldm_object *instance)
       NULL
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -438,7 +438,7 @@ LightDM_default_session_getter_cb(ldm_object *instance) {
       NULL
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -489,7 +489,7 @@ LightDM_hostname_getter_cb(ldm_object *instance) {
       NULL
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -540,7 +540,7 @@ LightDM_language_getter_cb(ldm_object *instance) {
       NULL
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -574,7 +574,7 @@ LightDM_layout_getter_cb(ldm_object *instance) {
       NULL
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -596,7 +596,7 @@ LightDM_layout_setter_cb(
       arguments
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -682,7 +682,7 @@ LightDM_select_user_hint_getter_cb(ldm_object *instance) {
       NULL
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -716,7 +716,7 @@ LightDM_shared_data_directory_getter_cb(ldm_object *instance) {
       NULL
       );
   if (reply == NULL) {
-    return jsc_value_new_null(context);
+    return NULL;
   }
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
@@ -933,38 +933,38 @@ LightDM_initialize(
 
   const struct JSCClassProperty LightDM_properties[] = {
     {"authentication_user", G_CALLBACK(LightDM_authentication_user_getter_cb), NULL, JSC_TYPE_VALUE},
-    {"autologin_guest", G_CALLBACK(LightDM_autologin_guest_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"autologin_timeout", G_CALLBACK(LightDM_autologin_timeout_getter_cb), NULL, G_TYPE_INT},
+    {"autologin_guest", G_CALLBACK(LightDM_autologin_guest_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"autologin_timeout", G_CALLBACK(LightDM_autologin_timeout_getter_cb), NULL, JSC_TYPE_VALUE},
     {"autologin_user", G_CALLBACK(LightDM_autologin_user_getter_cb), NULL, JSC_TYPE_VALUE},
 
-    {"can_hibernate", G_CALLBACK(LightDM_can_hibernate_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"can_restart", G_CALLBACK(LightDM_can_restart_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"can_shutdown", G_CALLBACK(LightDM_can_shutdown_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"can_suspend", G_CALLBACK(LightDM_can_suspend_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"can_hibernate", G_CALLBACK(LightDM_can_hibernate_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"can_restart", G_CALLBACK(LightDM_can_restart_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"can_shutdown", G_CALLBACK(LightDM_can_shutdown_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"can_suspend", G_CALLBACK(LightDM_can_suspend_getter_cb), NULL, JSC_TYPE_VALUE},
 
     {"brightness", G_CALLBACK(LightDM_brightness_getter_cb), G_CALLBACK(LightDM_brightness_setter_cb), JSC_TYPE_VALUE},
 
     {"default_session", G_CALLBACK(LightDM_default_session_getter_cb), NULL, JSC_TYPE_VALUE},
-    {"has_guest_account", G_CALLBACK(LightDM_has_guest_account_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"hide_users_hint", G_CALLBACK(LightDM_hide_users_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"has_guest_account", G_CALLBACK(LightDM_has_guest_account_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"hide_users_hint", G_CALLBACK(LightDM_hide_users_hint_getter_cb), NULL, JSC_TYPE_VALUE},
     {"hostname", G_CALLBACK(LightDM_hostname_getter_cb), NULL, JSC_TYPE_VALUE},
 
-    {"in_authentication", G_CALLBACK(LightDM_in_authentication_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"is_authenticated", G_CALLBACK(LightDM_is_authenticated_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"in_authentication", G_CALLBACK(LightDM_in_authentication_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"is_authenticated", G_CALLBACK(LightDM_is_authenticated_getter_cb), NULL, JSC_TYPE_VALUE},
 
     {"language", G_CALLBACK(LightDM_language_getter_cb), NULL, JSC_TYPE_VALUE},
     {"languages", G_CALLBACK(LightDM_languages_getter_cb), NULL, JSC_TYPE_VALUE},
     {"layout", G_CALLBACK(LightDM_layout_getter_cb), G_CALLBACK(LightDM_layout_setter_cb), JSC_TYPE_VALUE},
     {"layouts", G_CALLBACK(LightDM_layouts_getter_cb), NULL, JSC_TYPE_VALUE},
 
-    {"lock_hint", G_CALLBACK(LightDM_lock_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"lock_hint", G_CALLBACK(LightDM_lock_hint_getter_cb), NULL, JSC_TYPE_VALUE},
     {"remote_sessions", G_CALLBACK(LightDM_remote_sessions_getter_cb), NULL, JSC_TYPE_VALUE},
-    {"select_guest_hint", G_CALLBACK(LightDM_select_guest_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"select_guest_hint", G_CALLBACK(LightDM_select_guest_hint_getter_cb), NULL, JSC_TYPE_VALUE},
     {"select_user_hint", G_CALLBACK(LightDM_select_user_hint_getter_cb), NULL, JSC_TYPE_VALUE},
     {"sessions", G_CALLBACK(LightDM_sessions_getter_cb), NULL, JSC_TYPE_VALUE},
     {"shared_data_directory", G_CALLBACK(LightDM_shared_data_directory_getter_cb), NULL, JSC_TYPE_VALUE},
-    {"show_manual_login_hint", G_CALLBACK(LightDM_show_manual_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
-    {"show_remote_login_hint", G_CALLBACK(LightDM_show_remote_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"show_manual_login_hint", G_CALLBACK(LightDM_show_manual_login_hint_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"show_remote_login_hint", G_CALLBACK(LightDM_show_remote_login_hint_getter_cb), NULL, JSC_TYPE_VALUE},
     {"users", G_CALLBACK(LightDM_users_getter_cb), NULL, JSC_TYPE_VALUE},
 
     {NULL, NULL, NULL, 0},
