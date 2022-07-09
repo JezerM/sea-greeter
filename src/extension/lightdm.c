@@ -425,9 +425,443 @@ LightDM_brightness_setter_cb(
   GVariant *reply_param = webkit_user_message_get_parameters(reply);
   JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
 
+  g_ptr_array_free(arguments, true);
+  return value;
+}
+static JSCValue *
+LightDM_default_session_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "default_session",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_null(context);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_has_guest_account_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "has_guest_account",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_boolean(context, false);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_hide_users_hint_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "hide_users_hint",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_boolean(context, false);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_hostname_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "hostname",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_null(context);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_in_authentication_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "in_authentication",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_boolean(context, false);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_is_authenticated_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "is_authenticated",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_boolean(context, false);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_language_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "language",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_null(context);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_languages_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "languages",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_array(context, G_TYPE_NONE);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_layout_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "layout",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_null(context);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_layout_setter_cb(
+    ldm_object *instance,
+    JSCValue *object
+) {
+  JSCContext *context = instance->context;
+  GPtrArray *arguments = g_ptr_array_new();
+  g_ptr_array_add(arguments, object);
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "layout",
+      arguments
+      );
+  if (reply == NULL) {
+    return jsc_value_new_null(context);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  g_ptr_array_free(arguments, true);
+  return value;
+}
+static JSCValue *
+LightDM_layouts_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "layouts",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_array(context, G_TYPE_NONE);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_lock_hint_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "lock_hint",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_boolean(context, false);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_remote_sessions_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "remote_sessions",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_array(context, G_TYPE_NONE);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_select_guest_hint_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "select_guest_hint",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_boolean(context, false);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_select_user_hint_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "select_user_hint",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_null(context);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_sessions_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "sessions",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_array(context, G_TYPE_NONE);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_shared_data_directory_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "shared_data_directory",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_null(context);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_show_manual_login_hint_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "show_manual_login_hint",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_boolean(context, false);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_show_remote_login_hint_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "show_remote_login_hint",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_boolean(context, false);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
+static JSCValue *
+LightDM_users_getter_cb(ldm_object *instance) {
+  JSCContext *context = instance->context;
+
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync_with_arguments(
+      WebPage, context,
+      "lightdm", "users",
+      NULL
+      );
+  if (reply == NULL) {
+    return jsc_value_new_array(context, G_TYPE_NONE);
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
   return value;
 }
 
+static char *
+g_variant_to_string(GVariant *variant) {
+  if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
+    return NULL;
+  const gchar *value = g_variant_get_string(variant, NULL);
+  return g_strdup(value);
+}
+static GPtrArray *
+jsc_array_to_g_ptr_array(
+    JSCValue *jsc_array
+) {
+  if (!jsc_value_is_array(jsc_array)) {
+    return NULL;
+  }
+  GPtrArray *array = g_ptr_array_new();
+  JSCValue *jsc_array_length = jsc_value_object_get_property(jsc_array, "length");
+
+  int length = jsc_value_to_int32(jsc_array_length);
+
+  for (int i = 0; i < length; i++) {
+    g_ptr_array_add(array, jsc_value_object_get_property_at_index(jsc_array, i));
+  }
+
+  return array;
+}
+
+static void
+handle_lightdm_signal(
+    WebKitWebPage *web_page,
+    WebKitUserMessage *message
+) {
+  (void) web_page;
+  const char *name = webkit_user_message_get_name(message);
+  if (g_strcmp0(name, "lightdm") != 0) return;
+
+  GVariant *msg_param = webkit_user_message_get_parameters(message);
+  if (!g_variant_is_of_type(msg_param, G_VARIANT_TYPE_ARRAY)) {
+    return;
+  }
+  int parameters_length = g_variant_n_children(msg_param);
+  if (parameters_length == 0 || parameters_length > 2) {
+    return;
+  }
+
+  JSCContext *context = LightDM_object->context;
+  char *signal = NULL;
+  JSCValue *parameters = NULL;
+
+  GVariant *method_var = g_variant_get_child_value(msg_param, 0);
+  GVariant *params_var = g_variant_get_child_value(msg_param, 1);
+
+  signal = g_variant_to_string(method_var);
+  const gchar *json_params = g_variant_to_string(params_var);
+  parameters = jsc_value_new_from_json(context, json_params);
+
+  if (signal == NULL) {
+    return;
+  }
+
+  JSCValue *jsc_signal = jsc_value_object_get_property(LightDM_object->value, signal);
+  if (jsc_signal == NULL) {
+    return;
+  }
+  GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
+  (void) jsc_value_object_invoke_methodv(
+      jsc_signal,
+      "emit",
+      g_array->len,
+      (JSCValue **) g_array->pdata
+      );
+
+  g_free(signal);
+  g_ptr_array_free(g_array, true);
+}
+
+static void
+web_page_user_message_received(
+    WebKitWebPage *web_page,
+    WebKitUserMessage *message,
+    gpointer user_data
+) {
+  (void) user_data;
+  /*const char *name = webkit_user_message_get_name(message);*/
+  /*printf("Got web_view message: '%s'\n", name);*/
+
+  handle_lightdm_signal(web_page, message);
+}
 
 static JSCValue *
 LightDM_constructor(JSCContext *context) {
@@ -479,6 +913,11 @@ LightDM_Test_initialize(
     return;
   }
 
+  g_signal_connect(web_page,
+                   "user-message-received",
+                    G_CALLBACK (web_page_user_message_received),
+                    NULL);
+
   LightDM_class = jsc_context_register_class(
       js_context,
       "__LightDMGreeterTest",
@@ -504,6 +943,29 @@ LightDM_Test_initialize(
     {"can_suspend", G_CALLBACK(LightDM_can_suspend_getter_cb), NULL, G_TYPE_BOOLEAN},
 
     {"brightness", G_CALLBACK(LightDM_brightness_getter_cb), G_CALLBACK(LightDM_brightness_setter_cb), JSC_TYPE_VALUE},
+
+    {"default_session", G_CALLBACK(LightDM_default_session_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"has_guest_account", G_CALLBACK(LightDM_has_guest_account_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"hide_users_hint", G_CALLBACK(LightDM_hide_users_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"hostname", G_CALLBACK(LightDM_hostname_getter_cb), NULL, JSC_TYPE_VALUE},
+
+    {"in_authentication", G_CALLBACK(LightDM_in_authentication_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"is_authenticated", G_CALLBACK(LightDM_is_authenticated_getter_cb), NULL, G_TYPE_BOOLEAN},
+
+    {"language", G_CALLBACK(LightDM_language_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"languages", G_CALLBACK(LightDM_languages_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"layout", G_CALLBACK(LightDM_layout_getter_cb), G_CALLBACK(LightDM_layout_setter_cb), JSC_TYPE_VALUE},
+    {"layouts", G_CALLBACK(LightDM_layouts_getter_cb), NULL, JSC_TYPE_VALUE},
+
+    {"lock_hint", G_CALLBACK(LightDM_lock_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"remote_sessions", G_CALLBACK(LightDM_remote_sessions_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"select_guest_hint", G_CALLBACK(LightDM_select_guest_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"select_user_hint", G_CALLBACK(LightDM_select_user_hint_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"sessions", G_CALLBACK(LightDM_sessions_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"shared_data_directory", G_CALLBACK(LightDM_shared_data_directory_getter_cb), NULL, JSC_TYPE_VALUE},
+    {"show_manual_login_hint", G_CALLBACK(LightDM_show_manual_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"show_remote_login_hint", G_CALLBACK(LightDM_show_remote_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN},
+    {"users", G_CALLBACK(LightDM_users_getter_cb), NULL, JSC_TYPE_VALUE},
 
     {NULL, NULL, NULL, 0},
   };
