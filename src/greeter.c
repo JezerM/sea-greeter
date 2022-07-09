@@ -2,22 +2,19 @@
 #include <webkit2/webkit2.h>
 #include <locale.h>
 #include <gio/gmenu.h>
+
 #include "config.h"
 #include "settings.h"
 #include "theme.h"
 #include "logger.h"
 
+#include "greeter.h"
 #include "bridge/lightdm.h"
 
 static GdkWindow *root_window;
 static GdkDisplay *default_display;
 
 extern GreeterConfig *greeter_config;
-
-typedef struct _GtkBrowser {
-  WebKitWebView *web_view;
-  GtkApplicationWindow *window;
-} GtkBrowser;
 
 GPtrArray *greeter_browsers = NULL;
 
