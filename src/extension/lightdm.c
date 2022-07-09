@@ -12,9 +12,9 @@
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
 
+#include "utils/utils.h"
 #include "utils/ipc-renderer.h"
 #include "extension/lightdm-signal.h"
-#include "extension/utils.h"
 
 /*extern WebKitWebExtension *WebExtension;*/
 /*extern guint64 page_id;*/

@@ -5,9 +5,9 @@ web_extension_sources = [
   'lightdm-extension.c',
   'settings.c',
   'utils/ipc-renderer.c',
+  'utils/utils.c',
 
   'extension/lightdm.c',
-  'extension/utils.c',
   'extension/lightdm-signal.c',
 
   'bridge/lightdm-objects.c',
@@ -37,6 +37,9 @@ greeter_sources = [
   'greeter.c',
   'settings.c', 
   'theme.c',
+
+  'utils/ipc-main.c',
+  'utils/utils.c',
 
   'bridge/lightdm.c',
   'bridge/utils.c',

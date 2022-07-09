@@ -7,9 +7,8 @@
 #include <glib-object.h>
 
 #include <webkit2/webkit-web-extension.h>
-#include <JavaScriptCore/JavaScript.h>
 
-#include "extension/utils.h"
+#include "utils/utils.h"
 
 typedef struct {
   gboolean received;
