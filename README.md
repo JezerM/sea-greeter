@@ -1,4 +1,14 @@
-# Sea Greeter
+<div align="center">
+  <h1><strong>Sea Greeter</strong></h1>
+  <p>
+    <strong>Another LightDM greeter made with WebKitGTK2</strong>
+  </p>
+  <p>
+    <a href="#">
+      <img alt="License Information" src="https://img.shields.io/github/license/JezerM/sea-greeter.svg">
+    </a>
+  </p>
+</div>
 
 Sea (like C) greeter for LightDM allows to create themes with web technologies,
 the same as [web-greeter][web-greeter], [nody-greeter][nody-greeter] and the
