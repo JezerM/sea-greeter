@@ -17,7 +17,7 @@ similar to the last one, as sea-greeter is made with webkit2 instead of chromium
 
 ## Known issues
 
-- [ ] Window does not start in fullscreen when no window manager available
+- [x] Window does not start in fullscreen when no window manager available
 - [ ] No multi-monitor support yet
 - [ ] No command line arguments support
 - [ ] No brightness and battery features support

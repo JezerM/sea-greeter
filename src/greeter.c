@@ -283,10 +283,15 @@ create_web_view()
 }
 
 static GtkBrowser *
-create_browser(GtkApplication *app, WebKitWebView *web_view)
+create_browser(GtkApplication *app, WebKitWebView *web_view, GdkMonitor *monitor)
 {
   GtkApplicationWindow *window = GTK_APPLICATION_WINDOW(gtk_application_window_new(app));
-  gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+
+  GdkRectangle geometry;
+  gdk_monitor_get_geometry(monitor, &geometry);
+
+  gtk_window_set_default_size(GTK_WINDOW(window), geometry.width, geometry.height);
+  /*gtk_window_fullscreen(GTK_WINDOW(window));*/
 
   g_signal_connect(window, "destroy", G_CALLBACK(destroy_window_cb), NULL);
   g_signal_connect(window, "show", G_CALLBACK(show_window_cb), NULL);
@@ -331,10 +336,19 @@ app_activate_cb(GtkApplication *app, gpointer user_data)
   WebKitWebView *web_view = create_web_view();
   /*WebKitWebView *web_view1 = create_web_view();*/
 
-  GtkBrowser *browser = create_browser(app, web_view);
+  GdkDisplay *display = gdk_display_get_default();
+
+  int n_monitors = gdk_display_get_n_monitors(display);
+
+  for (int i = 0; i < n_monitors; i++) {
+    GdkMonitor *monitor = gdk_display_get_monitor(display, i);
+    GtkBrowser *browser = create_browser(app, web_view, monitor);
+
+    g_ptr_array_add(greeter_browsers, browser);
+  }
+
   /*GtkBrowser *browser1 = create_browser(app, web_view1);*/
 
-  g_ptr_array_add(greeter_browsers, browser);
   /*g_ptr_array_add(greeter_browsers, browser1);*/
 
   initialize_actions(app);
