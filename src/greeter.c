@@ -292,15 +292,11 @@ create_browser(GtkApplication *app, WebKitWebView *web_view, GdkMonitor *monitor
   gdk_monitor_get_geometry(monitor, &geometry);
 
   gtk_window_set_default_size(GTK_WINDOW(window), geometry.width, geometry.height);
-  /*gtk_window_fullscreen(GTK_WINDOW(window));*/
 
   g_signal_connect(window, "destroy", G_CALLBACK(destroy_window_cb), NULL);
   g_signal_connect(window, "show", G_CALLBACK(show_window_cb), NULL);
 
   GtkWidget *center_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  GtkWidget *menu_bar = gtk_menu_bar_new_from_model(G_MENU_MODEL(initialize_menu_bar()));
-
-  gtk_box_pack_start(GTK_BOX(center_vbox), GTK_WIDGET(menu_bar), false, false, 0);
   gtk_box_pack_end(GTK_BOX(center_vbox), GTK_WIDGET(web_view), true, true, 0);
 
   gtk_container_add(GTK_CONTAINER(window), center_vbox);
@@ -310,7 +306,18 @@ create_browser(GtkApplication *app, WebKitWebView *web_view, GdkMonitor *monitor
   browser->web_view = web_view;
 
   g_signal_connect(web_view, "close", G_CALLBACK(close_web_view_cb), browser);
-  enable_developer_tools(web_view);
+
+  if (greeter_config->greeter->debug_mode) {
+    GMenuModel *menu_model = G_MENU_MODEL(initialize_menu_bar());
+    GtkWidget *menu_bar = gtk_menu_bar_new_from_model(menu_model);
+
+    gtk_box_pack_start(GTK_BOX(center_vbox), GTK_WIDGET(menu_bar), false, false, 0);
+    enable_developer_tools(web_view);
+
+    g_object_unref(menu_model);
+  } else {
+    gtk_window_fullscreen(GTK_WINDOW(window));
+  }
 
   return browser;
 }
