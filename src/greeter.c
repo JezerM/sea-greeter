@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include <locale.h>
+#include <stdlib.h>
 #include <webkit2/webkit2.h>
 
 #include "config.h"
@@ -369,12 +370,103 @@ app_startup_cb(GtkApplication *app, gpointer user_data)
   (void) user_data;
 }
 
+static void
+g_application_parse_args(gint *argc, gchar ***argv)
+{
+  GOptionContext *context = g_option_context_new(NULL);
+
+  gboolean version = false;
+
+  gchar *mode_str = NULL;
+  gboolean debug = false;
+  gboolean normal = false;
+
+  gchar *theme = NULL;
+  gboolean list = false;
+
+  GOptionEntry entries[] = {
+    { "version", 'v', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &version, "Version", NULL },
+
+    { "mode", 0, G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING, &mode_str, "Mode", NULL },
+    { "debug", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &debug, "Debug mode", NULL },
+    { "normal", 'n', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &normal, "Normal mode", NULL },
+
+    { "theme", 0, G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING, &theme, "Theme", NULL },
+    { "list", 0, G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &list, "List installed themes", NULL },
+    { NULL, 0, 0, 0, NULL, NULL, NULL },
+  };
+
+  g_option_context_add_main_entries(context, entries, NULL);
+  GOptionGroup *gtk_group = gtk_get_option_group(false);
+  g_option_context_add_group(context, gtk_group);
+  g_option_context_set_help_enabled(context, true);
+
+  g_option_context_parse(context, argc, argv, NULL);
+  g_option_context_free(context);
+
+  if (version) {
+    printf("%s\n", VERSION);
+    exit(0);
+  }
+  if (list) {
+    printf("List\n"); // TODO
+    exit(0);
+  }
+  if (theme) {
+    greeter_config->greeter->theme = g_string_new(theme);
+    g_free(theme);
+  }
+
+  if (mode_str && debug && normal) {
+    fprintf(stderr, "Conflict arguments: \"--mode\", \"--debug\" and \"--normal\"\n");
+    exit(1);
+  } else if (mode_str && debug) {
+    fprintf(stderr, "Conflict arguments: \"--mode\" and \"--debug\"\n");
+    exit(1);
+  } else if (mode_str && normal) {
+    fprintf(stderr, "Conflict arguments: \"--mode\" and \"--normal\"\n");
+    exit(1);
+  } else if (debug && normal) {
+    fprintf(stderr, "Conflict arguments: \"--debug\" and \"--normal\"\n");
+    exit(1);
+  }
+
+  if (mode_str && g_strcmp0(mode_str, "debug") == 0) {
+    debug = true;
+  } else if (mode_str && g_strcmp0(mode_str, "normal") == 0) {
+    normal = true;
+  } else if (mode_str) {
+    fprintf(stderr, "Argument --mode should be: \"debug\" or \"normal\"\n");
+    exit(1);
+  }
+  if (mode_str)
+    g_free(mode_str);
+
+  if (debug) {
+    greeter_config->greeter->debug_mode = true;
+  } else if (normal) {
+    greeter_config->greeter->debug_mode = false;
+  }
+}
+static int
+gtk_application_on_command_line(GtkApplication *app, GApplicationCommandLine *command_line)
+{
+  gint argc;
+  gchar **argv;
+  argv = g_application_command_line_get_arguments(command_line, &argc);
+
+  g_application_parse_args(&argc, &argv);
+
+  g_application_activate(G_APPLICATION(app));
+  return 0;
+}
+
 int
 main(int argc, char **argv)
 {
   gtk_init(&argc, &argv);
 
-  GtkApplication *app = gtk_application_new("com.github.jezerm.sea-greeter", G_APPLICATION_FLAGS_NONE);
+  GtkApplication *app = gtk_application_new("com.github.jezerm.sea-greeter", G_APPLICATION_HANDLES_COMMAND_LINE);
 
   setlocale(LC_ALL, "");
 
@@ -390,13 +482,9 @@ main(int argc, char **argv)
   webkit_application_info_ref(web_info);
   webkit_application_info_set_name(web_info, "com.github.jezerm.sea-greeter");
 
-  /*g_signal_connect (webkit_web_context_get_default(),*/
-  /*"initialize-web-extensions",*/
-  /*G_CALLBACK (initialize_web_extensions),*/
-  /*NULL);*/
-
   g_signal_connect(app, "activate", G_CALLBACK(app_activate_cb), NULL);
   g_signal_connect(app, "startup", G_CALLBACK(app_startup_cb), NULL);
+  g_signal_connect(app, "command_line", G_CALLBACK(gtk_application_on_command_line), NULL);
 
   g_application_run(G_APPLICATION(app), argc, argv);
 

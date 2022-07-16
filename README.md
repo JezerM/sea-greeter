@@ -19,7 +19,7 @@ similar to the last one, as sea-greeter is made with webkit2 instead of chromium
 
 - [x] Window does not start in fullscreen when no window manager available
 - [ ] No multi-monitor support yet
-- [ ] No command line arguments support
+- [x] No command line arguments support
 - [ ] No brightness and battery features support
 - [ ] No `greeter_config.layouts` support
 - [ ] Debug mode is always active (for testing)
