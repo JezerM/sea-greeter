@@ -22,11 +22,11 @@ similar to the last one, as sea-greeter is made with webkit2 instead of chromium
 - [x] No command line arguments support
 - [ ] No brightness and battery features support
 - [ ] No `greeter_config.layouts` support
-- [ ] Debug mode is always active (for testing)
+- [x] Debug mode is always active (for testing)
 - [ ] Memory management might not be correct (possible memory leaks)
 - [ ] No themes preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
 - [ ] No config preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
-- [ ] The webView freezes when a .face image fails to be loaded.
+- [x] The webView freezes when a .face image fails to be loaded.
 
 Besides that, you can login to your session :D
 
