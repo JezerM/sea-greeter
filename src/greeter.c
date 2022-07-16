@@ -278,6 +278,11 @@ create_web_view()
   WebKitWebContext *context = webkit_web_view_get_context(web_view);
   webkit_web_context_set_cache_model(context, WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER);
 
+  GdkRGBA *rgba = malloc(sizeof *rgba);
+  gdk_rgba_parse(rgba, "#000000");
+  webkit_web_view_set_background_color(web_view, rgba);
+  g_free(rgba);
+
   g_signal_connect(web_view, "user-message-received", G_CALLBACK(web_view_user_message_received), NULL);
   g_signal_connect(web_view, "context-menu", G_CALLBACK(web_view_context_menu), NULL);
   return web_view;
@@ -287,6 +292,11 @@ static GtkBrowser *
 create_browser(GtkApplication *app, WebKitWebView *web_view, GdkMonitor *monitor)
 {
   GtkApplicationWindow *window = GTK_APPLICATION_WINDOW(gtk_application_window_new(app));
+
+  GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(window));
+  GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
+  gtk_widget_set_visual(GTK_WIDGET(window), visual);
+  gtk_widget_set_app_paintable(GTK_WIDGET(window), true);
 
   GdkRectangle geometry;
   gdk_monitor_get_geometry(monitor, &geometry);
