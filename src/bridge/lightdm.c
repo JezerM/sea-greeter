@@ -62,7 +62,7 @@ LightDM_authenticate_cb(GPtrArray *arguments)
 
   GError *err = NULL;
   if (!lightdm_greeter_authenticate(Greeter, user, &err)) {
-    logger_error(err != NULL ? err->message : "Could not authenticate");
+    logger_error("%s", err != NULL ? err->message : "Could not authenticate");
     g_free(user);
     return jsc_value_new_boolean(context, false);
   }
@@ -79,7 +79,7 @@ LightDM_authenticate_as_guest_cb(GPtrArray *arguments)
   JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_greeter_authenticate_as_guest(Greeter, &err)) {
-    logger_error(err != NULL ? err->message : "Could not authenticate as guest");
+    logger_error("%s", err != NULL ? err->message : "Could not authenticate as guest");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -94,7 +94,7 @@ LightDM_cancel_authentication_cb(GPtrArray *arguments)
   JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_greeter_cancel_authentication(Greeter, &err)) {
-    logger_error(err != NULL ? err->message : "Could not cancel authentication");
+    logger_error("%s", err != NULL ? err->message : "Could not cancel authentication");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -120,7 +120,7 @@ LightDM_hibernate_cb(GPtrArray *arguments)
   JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_hibernate(&err)) {
-    logger_error(err != NULL ? err->message : "Could not hibernate");
+    logger_error("%s", err != NULL ? err->message : "Could not hibernate");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -144,7 +144,7 @@ LightDM_respond_cb(GPtrArray *arguments)
 
   GError *err = NULL;
   if (!lightdm_greeter_respond(Greeter, response, &err)) {
-    logger_error(err != NULL ? err->message : "Could not provide a response");
+    logger_error("%s", err != NULL ? err->message : "Could not provide a response");
     g_free(response);
     return jsc_value_new_boolean(context, false);
   }
@@ -161,7 +161,7 @@ LightDM_restart_cb(GPtrArray *arguments)
   JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_restart(&err)) {
-    logger_error(err != NULL ? err->message : "Could not restart");
+    logger_error("%s", err != NULL ? err->message : "Could not restart");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -182,7 +182,7 @@ LightDM_set_language_cb(GPtrArray *arguments)
 
   GError *err = NULL;
   if (!lightdm_greeter_set_language(Greeter, language, &err)) {
-    logger_error(err != NULL ? err->message : "Could not set language");
+    logger_error("%s", err != NULL ? err->message : "Could not set language");
     g_free(language);
     return jsc_value_new_boolean(context, false);
   }
@@ -199,7 +199,7 @@ LightDM_shutdown_cb(GPtrArray *arguments)
   JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_shutdown(&err)) {
-    logger_error(err != NULL ? err->message : "Could not shutdown");
+    logger_error("%s", err != NULL ? err->message : "Could not shutdown");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -220,7 +220,7 @@ LightDM_start_session_cb(GPtrArray *arguments)
 
   GError *err = NULL;
   if (!lightdm_greeter_start_session_sync(Greeter, session, &err)) {
-    logger_error(err != NULL ? err->message : "Could not start session");
+    logger_error("%s", err != NULL ? err->message : "Could not start session");
     g_free(session);
     return jsc_value_new_boolean(context, false);
   }
@@ -238,7 +238,7 @@ LightDM_suspend_cb(GPtrArray *arguments)
   JSCContext *context = get_global_context();
   GError *err = NULL;
   if (!lightdm_suspend(&err)) {
-    logger_error(err != NULL ? err->message : "Could not suspend");
+    logger_error("%s", err != NULL ? err->message : "Could not suspend");
     return jsc_value_new_boolean(context, false);
   }
   return jsc_value_new_boolean(context, true);
@@ -723,7 +723,7 @@ LightDM_constructor()
 
   gboolean connected = lightdm_greeter_connect_to_daemon_sync(Greeter, &err);
   if (!connected && err) {
-    logger_error(err->message);
+    logger_error("%s", err->message);
     g_error_free(err);
   }
 
@@ -740,19 +740,6 @@ LightDM_constructor()
 
   logger_debug("LightDM API connected");
 }
-
-/*static void*/
-/*ready_event_loaded(WebKitWebPage *web_page, JSCContext *context) {*/
-/*(void) web_page;*/
-/*JSCValue *global_object = jsc_context_get_global_object(context);*/
-
-/*JSCValue *dispatch_event = jsc_value_object_get_property(global_object, "dispatchEvent");*/
-/*JSCValue *parameters[] = {*/
-/*ready_event,*/
-/*NULL*/
-/*};*/
-/*(void) jsc_value_function_callv(dispatch_event, 1, parameters);*/
-/*}*/
 
 static char *
 g_variant_to_string(GVariant *variant)
