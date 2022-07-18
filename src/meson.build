@@ -45,6 +45,7 @@ greeter_sources = [
   'utils/utils.c',
 
   'bridge/lightdm.c',
+  'bridge/greeter_config.c',
   'bridge/utils.c',
   #'bridge/lightdm-signal.c',
   'bridge/lightdm-objects.c',

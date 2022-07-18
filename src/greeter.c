@@ -8,6 +8,7 @@
 #include "settings.h"
 #include "theme.h"
 
+#include "bridge/greeter_config.h"
 #include "bridge/lightdm.h"
 #include "browser.h"
 
@@ -165,6 +166,7 @@ app_activate_cb(GtkApplication *app, gpointer user_data)
   gdk_window_set_cursor(root_window, gdk_cursor_new_for_display(default_display, GDK_LEFT_PTR));
 
   LightDM_initialize();
+  GreeterConfig_initialize();
 
   g_signal_connect(
       webkit_web_context_get_default(),
