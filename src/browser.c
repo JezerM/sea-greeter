@@ -8,8 +8,6 @@ extern GPtrArray *greeter_browsers;
 typedef struct {
   GtkBox *main_box;
   GtkMenuBar *menu_bar;
-
-  gboolean show_menu_bar;
 } BrowserPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE(Browser, browser, GTK_TYPE_APPLICATION_WINDOW)
@@ -49,7 +47,6 @@ browser_init(Browser *self)
   BrowserPrivate *priv = browser_get_instance_private(self);
 
   self->web_view = browser_web_view_new();
-  priv->show_menu_bar = false;
 
   GtkBuilder *builder = gtk_builder_new_from_resource("/com/github/jezerm/sea_greeter/resources/menu_bar.ui");
   GMenuModel *menu = G_MENU_MODEL(gtk_builder_get_object(builder, "menu"));

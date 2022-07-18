@@ -766,7 +766,7 @@ LightDM_initialize(
 
   g_signal_connect(web_page, "user-message-received", G_CALLBACK(web_page_user_message_received), NULL);
 
-  LightDM_class = jsc_context_register_class(js_context, "__LightDMGreeterTest", NULL, NULL, NULL);
+  LightDM_class = jsc_context_register_class(js_context, "__LightDMGreeter", NULL, NULL, NULL);
   JSCValue *ldm_constructor = jsc_class_add_constructor(
       LightDM_class,
       NULL,
