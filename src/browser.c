@@ -56,16 +56,14 @@ browser_init(Browser *self)
   priv->menu_bar = GTK_MENU_BAR(gtk_menu_bar_new_from_model(menu));
 
   priv->main_box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+  GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+  gtk_widget_set_name(GTK_WIDGET(box), "box_container");
 
   /*gtk_box_pack_start(priv->main_box, GTK_WIDGET(priv->menu_bar), false, true, 0);*/
-  gtk_box_pack_end(priv->main_box, GTK_WIDGET(self->web_view), true, true, 0);
+  gtk_box_pack_start(box, GTK_WIDGET(self->web_view), true, true, 0);
+  gtk_box_pack_end(priv->main_box, GTK_WIDGET(box), true, true, 0);
 
   gtk_container_add(GTK_CONTAINER(self), GTK_WIDGET(priv->main_box));
-
-  GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(self));
-  GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
-  gtk_widget_set_visual(GTK_WIDGET(self), visual);
-  gtk_widget_set_app_paintable(GTK_WIDGET(self), true);
 
   g_object_unref(builder);
 }
@@ -78,6 +76,19 @@ browser_new(GtkApplication *app, GdkMonitor *monitor)
   gdk_monitor_get_geometry(monitor, &geometry);
 
   gtk_window_set_default_size(GTK_WINDOW(browser), geometry.width, geometry.height);
+
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_resource(provider, "/com/github/jezerm/sea_greeter/resources/style.css");
+
+  GdkDisplay *display = gdk_monitor_get_display(monitor);
+  GdkScreen *screen = gdk_display_get_default_screen(display);
+  gtk_style_context_add_provider_for_screen(
+      screen,
+      GTK_STYLE_PROVIDER(provider),
+      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+  g_object_unref(provider);
+
   return browser;
 }
 Browser *
