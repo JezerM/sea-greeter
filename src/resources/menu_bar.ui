@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="menu">
+    <submenu>
+      <attribute name="label" translatable="yes">File</attribute>
+
+      <item>
+        <attribute name="label" translatable="yes">Quit</attribute>
+        <attribute name="action">app.quit</attribute>
+      </item>
+    </submenu>
+
+    <submenu>
+      <attribute name="label" translatable="yes">View</attribute>
+
+      <item>
+        <attribute name="label" translatable="yes">Toggle Developer Tools</attribute>
+        <attribute name="action">win.toggle-inspector</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Zoom in</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Zoom out</attribute>
+      </item>
+    </submenu>
+  </menu>
+</interface>
