@@ -9,7 +9,7 @@
 
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
-#include "greeter.h"
+#include "browser.h"
 #include "logger.h"
 #include "settings.h"
 #include "utils/utils.h"
@@ -639,8 +639,8 @@ authentication_complete_cb(LightDMGreeter *greeter)
   WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
   for (guint i = 0; i < greeter_browsers->len; i++) {
-    GtkBrowser *browser = greeter_browsers->pdata[i];
-    webkit_web_view_send_message_to_page(browser->web_view, message, NULL, NULL, NULL);
+    Browser *browser = greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(WEBKIT_WEB_VIEW(browser->web_view), message, NULL, NULL, NULL);
   }
 }
 static void
@@ -654,8 +654,8 @@ autologin_timer_expired_cb(LightDMGreeter *greeter)
   WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
   for (guint i = 0; i < greeter_browsers->len; i++) {
-    GtkBrowser *browser = greeter_browsers->pdata[i];
-    webkit_web_view_send_message_to_page(browser->web_view, message, NULL, NULL, NULL);
+    Browser *browser = greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(WEBKIT_WEB_VIEW(browser->web_view), message, NULL, NULL, NULL);
   }
 }
 static void
@@ -673,8 +673,8 @@ show_prompt_cb(LightDMGreeter *greeter, const gchar *text, LightDMPromptType typ
   WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
   for (guint i = 0; i < greeter_browsers->len; i++) {
-    GtkBrowser *browser = greeter_browsers->pdata[i];
-    webkit_web_view_send_message_to_page(browser->web_view, message, NULL, NULL, NULL);
+    Browser *browser = greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(WEBKIT_WEB_VIEW(browser->web_view), message, NULL, NULL, NULL);
   }
   g_ptr_array_free(arr, true);
 }
@@ -693,8 +693,8 @@ show_message_cb(LightDMGreeter *greeter, const gchar *text, LightDMMessageType t
   WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
   for (guint i = 0; i < greeter_browsers->len; i++) {
-    GtkBrowser *browser = greeter_browsers->pdata[i];
-    webkit_web_view_send_message_to_page(browser->web_view, message, NULL, NULL, NULL);
+    Browser *browser = greeter_browsers->pdata[i];
+    webkit_web_view_send_message_to_page(WEBKIT_WEB_VIEW(browser->web_view), message, NULL, NULL, NULL);
   }
   g_ptr_array_free(arr, true);
 }
