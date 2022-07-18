@@ -159,6 +159,11 @@ app_activate_cb(GtkApplication *app, gpointer user_data)
 {
   (void) user_data;
 
+  root_window = gdk_get_default_root_window();
+  default_display = gdk_display_get_default();
+
+  gdk_window_set_cursor(root_window, gdk_cursor_new_for_display(default_display, GDK_LEFT_PTR));
+
   LightDM_initialize();
 
   g_signal_connect(
@@ -277,32 +282,13 @@ g_application_parse_args(gint *argc, gchar ***argv)
     greeter_config->greeter->debug_mode = false;
   }
 }
-static int
-gtk_application_on_command_line(GtkApplication *app, GApplicationCommandLine *command_line)
-{
-  gint argc;
-  gchar **argv;
-  argv = g_application_command_line_get_arguments(command_line, &argc);
-
-  g_application_parse_args(&argc, &argv);
-
-  g_application_activate(G_APPLICATION(app));
-  return 0;
-}
 
 int
 main(int argc, char **argv)
 {
-  gtk_init(&argc, &argv);
-
-  GtkApplication *app = gtk_application_new("com.github.jezerm.sea-greeter", G_APPLICATION_HANDLES_COMMAND_LINE);
+  GtkApplication *app = gtk_application_new("com.github.jezerm.sea-greeter", G_APPLICATION_FLAGS_NONE);
 
   setlocale(LC_ALL, "");
-
-  root_window = gdk_get_default_root_window();
-  default_display = gdk_display_get_default();
-
-  gdk_window_set_cursor(root_window, gdk_cursor_new_for_display(default_display, GDK_LEFT_PTR));
 
   load_configuration();
   /*print_greeter_config();*/
@@ -313,7 +299,8 @@ main(int argc, char **argv)
 
   g_signal_connect(app, "activate", G_CALLBACK(app_activate_cb), NULL);
   g_signal_connect(app, "startup", G_CALLBACK(app_startup_cb), NULL);
-  g_signal_connect(app, "command_line", G_CALLBACK(gtk_application_on_command_line), NULL);
+
+  g_application_parse_args(&argc, &argv);
 
   g_application_run(G_APPLICATION(app), argc, argv);
 
