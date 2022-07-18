@@ -4,19 +4,40 @@
 #include <unistd.h>
 
 #include <jsc/jsc.h>
-#include <webkit2/webkit-web-extension.h>
+#include <lightdm-gobject-1/lightdm.h>
+#include <webkit2/webkit2.h>
 
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
+#include "browser.h"
+#include "logger.h"
 #include "settings.h"
+#include "utils/utils.h"
 
-ldm_object *GreeterConfig_object = NULL;
+static JSCVirtualMachine *VirtualMachine = NULL;
+static JSCContext *Context = NULL;
+
+extern GPtrArray *greeter_browsers;
+
+static JSCContext *
+get_global_context()
+{
+  if (Context == NULL)
+    Context = jsc_context_new_with_virtual_machine(VirtualMachine);
+  return Context;
+}
+
+typedef struct _BridgeObject {
+  GPtrArray *properties;
+  GPtrArray *methods;
+} BridgeObject;
+
+static BridgeObject GreeterConfig_object;
 
 static JSCValue *
-GreeterConfig_branding_getter_cb(ldm_object *instance, JSCValue *object)
+GreeterConfig_branding_getter_cb()
 {
-  (void) object;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
 
   const gchar *background_images_dir = greeter_config->branding->background_images_dir->str;
@@ -30,10 +51,9 @@ GreeterConfig_branding_getter_cb(ldm_object *instance, JSCValue *object)
 }
 
 static JSCValue *
-GreeterConfig_greeter_getter_cb(ldm_object *instance, JSCValue *object)
+GreeterConfig_greeter_getter_cb()
 {
-  (void) object;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
 
   const gboolean debug_mode = greeter_config->greeter->debug_mode;
@@ -55,10 +75,9 @@ GreeterConfig_greeter_getter_cb(ldm_object *instance, JSCValue *object)
 }
 
 static JSCValue *
-GreeterConfig_features_getter_cb(ldm_object *instance, JSCValue *object)
+GreeterConfig_features_getter_cb()
 {
-  (void) object;
-  JSCContext *context = instance->context;
+  JSCContext *context = get_global_context();
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
 
   const gboolean battery = greeter_config->features->battery;
@@ -79,47 +98,116 @@ GreeterConfig_features_getter_cb(ldm_object *instance, JSCValue *object)
   return value;
 }
 
-/**
- * GreeterConfig Class constructor, should be called only once in sea-greeter's life
- */
-static JSCValue *
-GreeterConfig_constructor(JSCContext *context)
+static char *
+g_variant_to_string(GVariant *variant)
 {
-  return jsc_value_new_null(context);
+  if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
+    return NULL;
+  const gchar *value = g_variant_get_string(variant, NULL);
+  return g_strdup(value);
+}
+static GPtrArray *
+jsc_array_to_g_ptr_array(JSCValue *jsc_array)
+{
+  if (!jsc_value_is_array(jsc_array)) {
+    return NULL;
+  }
+  GPtrArray *array = g_ptr_array_new();
+  JSCValue *jsc_array_length = jsc_value_object_get_property(jsc_array, "length");
+
+  int length = jsc_value_to_int32(jsc_array_length);
+
+  for (int i = 0; i < length; i++) {
+    g_ptr_array_add(array, jsc_value_object_get_property_at_index(jsc_array, i));
+  }
+
+  return array;
+}
+
+static void
+handle_greeter_config_property(WebKitUserMessage *message, const gchar *method, GPtrArray *parameters)
+{
+  (void) parameters;
+
+  int i = 0;
+  struct JSCClassProperty *current = GreeterConfig_object.properties->pdata[i];
+  while (current->name != NULL) {
+    /*printf("Current: %d - %s\n", i, current->name);*/
+    if (g_strcmp0(current->name, method) == 0) {
+
+      if (parameters->len > 0) {
+        JSCValue *param = parameters->pdata[0];
+        ((void (*)(JSCValue *)) current->setter)(param);
+        WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
+        webkit_user_message_send_reply(message, empty_msg);
+        break;
+      }
+
+      JSCValue *jsc_value = ((JSCValue * (*) (void) ) current->getter)();
+      const gchar *json_value = jsc_value_to_json(jsc_value, 0);
+      /*printf("JSON value: '%s'\n", json_value);*/
+
+      GVariant *value = g_variant_new_string(json_value);
+      WebKitUserMessage *reply = webkit_user_message_new("reply", value);
+
+      webkit_user_message_send_reply(message, reply);
+      break;
+    }
+    i++;
+    current = GreeterConfig_object.properties->pdata[i];
+  }
 }
 
 void
-GreeterConfig_initialize(
-    WebKitScriptWorld *world,
-    WebKitWebPage *web_page,
-    WebKitFrame *web_frame,
-    WebKitWebExtension *extension)
+handle_greeter_config_accessor(WebKitWebView *web_view, WebKitUserMessage *message)
 {
-  (void) web_page;
-  (void) extension;
+  (void) web_view;
+  const char *name = webkit_user_message_get_name(message);
+  if (g_strcmp0(name, "greeter_config") != 0)
+    return;
 
-  load_configuration();
+  WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
+  GVariant *msg_param = webkit_user_message_get_parameters(message);
 
-  JSCContext *js_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
-  JSCValue *global_object = jsc_context_get_global_object(js_context);
-
-  if (GreeterConfig_object != NULL) {
-    jsc_value_object_set_property(global_object, "greeter_config", GreeterConfig_object->value);
+  if (!g_variant_is_of_type(msg_param, G_VARIANT_TYPE_ARRAY)) {
+    webkit_user_message_send_reply(message, empty_msg);
+    return;
+  }
+  int parameters_length = g_variant_n_children(msg_param);
+  if (parameters_length == 0 || parameters_length > 2) {
+    webkit_user_message_send_reply(message, empty_msg);
     return;
   }
 
-  JSCClass *GreeterConfig_class = jsc_context_register_class(js_context, "__GreeterConfig", NULL, NULL, NULL);
+  JSCContext *context = get_global_context();
+  char *method = NULL;
+  JSCValue *parameters = NULL;
 
-  JSCValue *gc_constructor = jsc_class_add_constructor(
-      GreeterConfig_class,
-      NULL,
-      G_CALLBACK(GreeterConfig_constructor),
-      js_context,
-      NULL,
-      JSC_TYPE_VALUE,
-      0,
-      NULL);
+  GVariant *method_var = g_variant_get_child_value(msg_param, 0);
+  GVariant *params_var = g_variant_get_child_value(msg_param, 1);
 
+  method = g_variant_to_string(method_var);
+  const gchar *json_params = g_variant_to_string(params_var);
+  parameters = jsc_value_new_from_json(context, json_params);
+  /*printf("Handling: '%s'\n", method);*/
+  /*printf("JSON params: '%s'\n", json_params);*/
+
+  if (method == NULL) {
+    webkit_user_message_send_reply(message, empty_msg);
+    return;
+  }
+
+  GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
+
+  handle_greeter_config_property(message, method, g_array);
+
+  g_free(method);
+  g_ptr_array_free(g_array, true);
+}
+
+void
+GreeterConfig_initialize()
+{
   const struct JSCClassProperty GreeterConfig_properties[] = {
     { "branding", G_CALLBACK(GreeterConfig_branding_getter_cb), NULL, JSC_TYPE_VALUE },
     { "greeter", G_CALLBACK(GreeterConfig_greeter_getter_cb), NULL, JSC_TYPE_VALUE },
@@ -127,15 +215,18 @@ GreeterConfig_initialize(
     { NULL, NULL, NULL, 0 },
   };
 
-  initialize_class_properties(GreeterConfig_class, GreeterConfig_properties);
+  GPtrArray *gc_properties = g_ptr_array_new_full(G_N_ELEMENTS(GreeterConfig_properties), NULL);
+  for (gsize i = 0; i < G_N_ELEMENTS(GreeterConfig_properties); i++) {
+    struct JSCClassProperty *prop = malloc(sizeof *prop);
+    prop->name = GreeterConfig_properties[i].name;
+    prop->property_type = GreeterConfig_properties[i].property_type;
+    prop->getter = GreeterConfig_properties[i].getter;
+    prop->setter = GreeterConfig_properties[i].setter;
+    g_ptr_array_add(gc_properties, prop);
+  }
 
-  JSCValue *value = jsc_value_constructor_callv(gc_constructor, 0, NULL);
-  GreeterConfig_object = malloc(sizeof *GreeterConfig_object);
-  GreeterConfig_object->value = value;
-  GreeterConfig_object->context = js_context;
+  VirtualMachine = jsc_virtual_machine_new();
 
-  JSCValue *greeter_config_object = jsc_value_new_object(js_context, GreeterConfig_object, GreeterConfig_class);
-  GreeterConfig_object->value = greeter_config_object;
-
-  jsc_value_object_set_property(global_object, "greeter_config", greeter_config_object);
+  GreeterConfig_object.properties = gc_properties;
+  GreeterConfig_object.methods = g_ptr_array_new();
 }
