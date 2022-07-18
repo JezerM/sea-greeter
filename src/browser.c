@@ -48,11 +48,6 @@ browser_init(Browser *self)
 {
   BrowserPrivate *priv = browser_get_instance_private(self);
 
-  /*GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(self));*/
-  /*GdkVisual *visual = gdk_screen_get_rgba_visual(screen);*/
-  /*gtk_widget_set_visual(GTK_WIDGET(self), visual);*/
-  /*gtk_widget_set_app_paintable(GTK_WIDGET(self), true);*/
-
   self->web_view = browser_web_view_new();
   priv->show_menu_bar = false;
 
@@ -66,6 +61,11 @@ browser_init(Browser *self)
   gtk_box_pack_end(priv->main_box, GTK_WIDGET(self->web_view), true, true, 0);
 
   gtk_container_add(GTK_CONTAINER(self), GTK_WIDGET(priv->main_box));
+
+  GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(self));
+  GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
+  gtk_widget_set_visual(GTK_WIDGET(self), visual);
+  gtk_widget_set_app_paintable(GTK_WIDGET(self), true);
 
   g_object_unref(builder);
 }
