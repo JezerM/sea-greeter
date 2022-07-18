@@ -90,7 +90,7 @@ toggle_inspector_cb(GSimpleAction *action, GVariant *parameter, gpointer user_da
   (void) user_data;
   GApplication *app = g_application_get_default();
 
-  GtkApplicationWindow *window_origin = NULL;
+  Browser *window_origin = NULL;
 
   GList *windows = gtk_application_get_windows(GTK_APPLICATION(app));
 
@@ -102,20 +102,15 @@ toggle_inspector_cb(GSimpleAction *action, GVariant *parameter, gpointer user_da
     }
     curr = curr->next;
   }
-  if (window_origin == NULL)
+  if (window_origin == NULL || !BROWSER_IS_WINDOW(window_origin)) {
     return;
+  }
 
-  GList *window_children = gtk_container_get_children(GTK_CONTAINER(window_origin));
-  if (g_list_length(window_children) == 0)
-    return;
-
-  window_children = gtk_container_get_children(GTK_CONTAINER(window_children[0].data));
-
-  WebKitWebView *web_view = g_list_last(window_children)->data;
+  BrowserWebView *web_view = window_origin->web_view;
   if (!WEBKIT_IS_WEB_VIEW(web_view))
     return;
 
-  WebKitWebInspector *inspector = webkit_web_view_get_inspector(web_view);
+  WebKitWebInspector *inspector = webkit_web_view_get_inspector(WEBKIT_WEB_VIEW(web_view));
   WebKitWebViewBase *inspector_web_view = webkit_web_inspector_get_web_view(inspector);
 
   if (inspector_web_view != NULL) {
