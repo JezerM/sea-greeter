@@ -10,6 +10,7 @@
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
 #include "browser.h"
+#include "lightdm/layout.h"
 #include "logger.h"
 #include "settings.h"
 #include "utils/utils.h"
@@ -96,6 +97,39 @@ GreeterConfig_features_getter_cb()
 
   jsc_value_object_set_property(value, "backlight", backlight);
   return value;
+}
+
+static JSCValue *
+GreeterConfig_layouts_getter_cb()
+{
+  JSCContext *context = get_global_context();
+
+  GList *layouts = lightdm_get_layouts();
+  GList *config_layouts = greeter_config->layouts;
+  GPtrArray *final = g_ptr_array_new();
+
+  GList *ldm_layout = layouts;
+  while (ldm_layout != NULL) {
+    GList *conf_layout = config_layouts;
+    while (conf_layout != NULL) {
+      GString *str = g_string_new(conf_layout->data);
+      g_string_replace(str, " ", "\t", 0);
+
+      LightDMLayout *lay = ldm_layout->data;
+      if (g_strcmp0(lightdm_layout_get_name(lay), str->str) == 0) {
+        JSCValue *val = LightDMLayout_to_JSCValue(context, lay);
+        if (val != NULL)
+          g_ptr_array_add(final, val);
+      }
+      g_string_free(str, true);
+
+      conf_layout = conf_layout->next;
+    }
+
+    ldm_layout = ldm_layout->next;
+  }
+
+  return jsc_value_new_array_from_garray(context, final);
 }
 
 static char *
@@ -212,6 +246,7 @@ GreeterConfig_initialize()
     { "branding", G_CALLBACK(GreeterConfig_branding_getter_cb), NULL, JSC_TYPE_VALUE },
     { "greeter", G_CALLBACK(GreeterConfig_greeter_getter_cb), NULL, JSC_TYPE_VALUE },
     { "features", G_CALLBACK(GreeterConfig_features_getter_cb), NULL, JSC_TYPE_VALUE },
+    { "layouts", G_CALLBACK(GreeterConfig_layouts_getter_cb), NULL, JSC_TYPE_VALUE },
     { NULL, NULL, NULL, 0 },
   };
 

@@ -62,6 +62,20 @@ GreeterConfig_features_getter_cb(ldm_object *instance)
 
   return value;
 }
+static JSCValue *
+GreeterConfig_layouts_getter_cb(ldm_object *instance)
+{
+  JSCContext *context = instance->context;
+  WebKitUserMessage *reply
+      = ipc_renderer_send_message_sync_with_arguments(WebPage, context, "greeter_config", "layouts", NULL);
+  if (reply == NULL) {
+    return NULL;
+  }
+  GVariant *reply_param = webkit_user_message_get_parameters(reply);
+  JSCValue *value = g_variant_reply_to_jsc_value(context, reply_param);
+
+  return value;
+}
 
 static JSCValue *
 GreeterConfig_constructor(JSCContext *context)
@@ -102,6 +116,7 @@ GreeterConfig_initialize(
     { "branding", G_CALLBACK(GreeterConfig_branding_getter_cb), NULL, JSC_TYPE_VALUE },
     { "greeter", G_CALLBACK(GreeterConfig_greeter_getter_cb), NULL, JSC_TYPE_VALUE },
     { "features", G_CALLBACK(GreeterConfig_features_getter_cb), NULL, JSC_TYPE_VALUE },
+    { "layouts", G_CALLBACK(GreeterConfig_layouts_getter_cb), NULL, JSC_TYPE_VALUE },
     { NULL, NULL, NULL, 0 },
   };
 
