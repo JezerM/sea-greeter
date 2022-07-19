@@ -14,10 +14,12 @@ struct _Browser {
   GtkApplicationWindow parent_instance;
 
   BrowserWebView *web_view;
+  gboolean debug_mode;
 };
 
 Browser *browser_new(GtkApplication *app, GdkMonitor *monitor);
 Browser * browser_new_debug(GtkApplication *app, GdkMonitor *monitor, gboolean debug_mode);
+void browser_show_menu_bar(Browser *browser, gboolean show);
 
 G_END_DECLS
 

@@ -31,16 +31,46 @@ browser_destroy(GtkWidget *self)
 }
 
 static const GActionEntry win_entries[] = {
-  { "toggle-inspector", browser_toggle_inspector_cb, NULL, NULL, NULL, { 0 } },
+  { "undo", browser_undo_cb, NULL, NULL, NULL, { 0 } },
+  { "redo", browser_redo_cb, NULL, NULL, NULL, { 0 } },
 
   { "copy", browser_copy_cb, NULL, NULL, NULL, { 0 } },
   { "cut", browser_cut_cb, NULL, NULL, NULL, { 0 } },
   { "paste", browser_paste_cb, NULL, NULL, NULL, { 0 } },
   { "paste-plain", browser_paste_plain_cb, NULL, NULL, NULL, { 0 } },
+  { "select-all", browser_select_all_cb, NULL, NULL, NULL, { 0 } },
 
+  { "zoom-normal", browser_zoom_normal_cb, NULL, NULL, NULL, { 0 } },
   { "zoom-in", browser_zoom_in_cb, NULL, NULL, NULL, { 0 } },
   { "zoom-out", browser_zoom_out_cb, NULL, NULL, NULL, { 0 } },
+
+  { "reload", browser_reload_cb, NULL, NULL, NULL, { 0 } },
+  { "force-reload", browser_force_reload_cb, NULL, NULL, NULL, { 0 } },
 };
+static const GActionEntry win_debug_entries[] = {
+  { "toggle-inspector", browser_toggle_inspector_cb, NULL, NULL, NULL, { 0 } },
+
+  { "fullscreen", browser_fullscreen_cb, NULL, NULL, NULL, { 0 } },
+
+  { "close", browser_close_cb, NULL, NULL, NULL, { 0 } },
+  { "minimize", browser_minimize_cb, NULL, NULL, NULL, { 0 } },
+};
+
+void
+browser_show_menu_bar(Browser *browser, gboolean show)
+{
+  BrowserPrivate *priv = browser_get_instance_private(browser);
+  if (!GTK_IS_WIDGET(priv->menu_bar))
+    return;
+  GtkWidget *parent = gtk_widget_get_parent(GTK_WIDGET(priv->menu_bar));
+  if (show && parent == NULL) {
+    gtk_box_pack_start(priv->main_box, GTK_WIDGET(priv->menu_bar), false, true, 0);
+    g_object_unref(priv->menu_bar);
+  } else if (parent != NULL) {
+    g_object_ref(priv->menu_bar);
+    gtk_container_remove(GTK_CONTAINER(priv->main_box), GTK_WIDGET(priv->menu_bar));
+  }
+}
 
 static void
 browser_constructed(GObject *object)
@@ -49,6 +79,16 @@ browser_constructed(GObject *object)
   Browser *browser = BROWSER_WINDOW(object);
 
   g_action_map_add_action_entries(G_ACTION_MAP(browser), win_entries, G_N_ELEMENTS(win_entries), browser);
+
+  if (browser->debug_mode) {
+    g_action_map_add_action_entries(G_ACTION_MAP(browser), win_debug_entries, G_N_ELEMENTS(win_debug_entries), browser);
+
+    GtkBuilder *builder = gtk_builder_new_from_resource("/com/github/jezerm/sea_greeter/resources/menu_bar.ui");
+    GMenuModel *menu = G_MENU_MODEL(gtk_builder_get_object(builder, "menu"));
+    priv->menu_bar = GTK_MENU_BAR(gtk_menu_bar_new_from_model(menu));
+
+    g_object_unref(builder);
+  }
 }
 
 static void
@@ -71,10 +111,7 @@ browser_init(Browser *self)
 
   self->web_view = browser_web_view_new();
 
-  GtkBuilder *builder = gtk_builder_new_from_resource("/com/github/jezerm/sea_greeter/resources/menu_bar.ui");
-  GMenuModel *menu = G_MENU_MODEL(gtk_builder_get_object(builder, "menu"));
-  priv->menu_bar = GTK_MENU_BAR(gtk_menu_bar_new_from_model(menu));
-
+  priv->menu_bar = NULL;
   priv->main_box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
   GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
   gtk_widget_set_name(GTK_WIDGET(box), "box_container");
