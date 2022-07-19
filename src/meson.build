@@ -40,6 +40,7 @@ greeter_sources = [
 
   'browser.c',
   'browser-web-view.c',
+  'browser-commands.c',
 
   'utils/ipc-main.c',
   'utils/utils.c',
@@ -57,7 +58,6 @@ greeter_sources += gnome.compile_resources('sea_greeter-resources',
   'sea-greeter.gresource.xml',
   c_name: 'sea_greeter'
 )
-
 
 greeter = executable(
   'sea-greeter',
