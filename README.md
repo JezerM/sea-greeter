@@ -17,11 +17,13 @@ similar to the last one, as sea-greeter is made with webkit2 instead of chromium
 
 ## Known issues
 
+There are lots of issues, even not documented here, so it is not recommended to use this greeter yet.
+
 - [x] Window does not start in fullscreen when no window manager available
 - [ ] No multi-monitor support yet
 - [x] No command line arguments support
 - [ ] No brightness and battery features support
-- [ ] No `greeter_config.layouts` support
+- [x] No `greeter_config.layouts` support
 - [x] Debug mode is always active (for testing)
 - [ ] Memory management might not be correct (possible memory leaks)
 - [ ] No themes preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
