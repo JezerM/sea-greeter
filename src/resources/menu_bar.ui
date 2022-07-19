@@ -19,9 +19,11 @@
       </item>
       <item>
         <attribute name="label" translatable="yes">Zoom in</attribute>
+        <attribute name="action">win.zoom-in</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Zoom out</attribute>
+        <attribute name="action">win.zoom-out</attribute>
       </item>
     </submenu>
   </menu>
