@@ -11,20 +11,98 @@
     </submenu>
 
     <submenu>
+      <attribute name="label" translatable="yes">Edit</attribute>
+
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Undo</attribute>
+          <attribute name="action">win.undo</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Redo</attribute>
+          <attribute name="action">win.redo</attribute>
+        </item>
+      </section>
+
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Cut</attribute>
+          <attribute name="action">win.cut</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Copy</attribute>
+          <attribute name="action">win.copy</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Paste</attribute>
+          <attribute name="action">win.paste</attribute>
+        </item>
+      </section>
+
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Select All</attribute>
+          <attribute name="action">win.select-all</attribute>
+        </item>
+      </section>
+
+    </submenu>
+
+    <submenu>
       <attribute name="label" translatable="yes">View</attribute>
 
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Reload</attribute>
+          <attribute name="action">win.reload</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Force Reload</attribute>
+          <attribute name="action">win.force-reload</attribute>
+        </item>
+
+        <item>
+          <attribute name="label" translatable="yes">Toggle Developer Tools</attribute>
+          <attribute name="action">win.toggle-inspector</attribute>
+        </item>
+      </section>
+
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Actual Size</attribute>
+          <attribute name="action">win.zoom-normal</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Zoom In</attribute>
+          <attribute name="action">win.zoom-in</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Zoom Out</attribute>
+          <attribute name="action">win.zoom-out</attribute>
+        </item>
+      </section>
+
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Toggle Fullscreen</attribute>
+          <attribute name="action">win.fullscreen</attribute>
+        </item>
+      </section>
+
+    </submenu>
+
+    <submenu>
+      <attribute name="label" translatable="yes">Window</attribute>
+
       <item>
-        <attribute name="label" translatable="yes">Toggle Developer Tools</attribute>
-        <attribute name="action">win.toggle-inspector</attribute>
+        <attribute name="label" translatable="yes">Minimize</attribute>
+        <attribute name="action">win.minimize</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">Zoom in</attribute>
-        <attribute name="action">win.zoom-in</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">Zoom out</attribute>
-        <attribute name="action">win.zoom-out</attribute>
+        <attribute name="label" translatable="yes">Close</attribute>
+        <attribute name="action">win.close</attribute>
       </item>
     </submenu>
+
   </menu>
 </interface>
