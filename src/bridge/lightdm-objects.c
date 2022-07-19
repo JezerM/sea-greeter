@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -43,6 +44,8 @@ LightDMUser_to_JSCValue(JSCContext *context, LightDMUser *user)
   jsc_value_object_set_property(value, "logged_in", jsc_value_new_boolean(context, logged_in));
   jsc_value_object_set_property(value, "session", jsc_value_new_string(context, session));
   jsc_value_object_set_property(value, "username", jsc_value_new_string(context, username));
+
+  g_ptr_array_free(layouts_array, true);
   return value;
 }
 

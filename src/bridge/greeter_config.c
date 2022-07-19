@@ -128,8 +128,9 @@ GreeterConfig_layouts_getter_cb()
 
     ldm_layout = ldm_layout->next;
   }
-
-  return jsc_value_new_array_from_garray(context, final);
+  JSCValue *value = jsc_value_new_array_from_garray(context, final);
+  g_ptr_array_free(final, true);
+  return value;
 }
 
 static char *
