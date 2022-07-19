@@ -86,6 +86,33 @@ browser_zoom_out_cb(GSimpleAction *action, GVariant *parameter, gpointer user_da
   Browser *browser = user_data;
   browser_set_zoom(browser, BROWSER_ZOOM_OUT);
 }
+void
+browser_zoom_normal_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+  webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(browser->web_view), 1.0f);
+}
+
+void
+browser_undo_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+
+  webkit_web_view_execute_editing_command(WEBKIT_WEB_VIEW(browser->web_view), WEBKIT_EDITING_COMMAND_UNDO);
+}
+void
+browser_redo_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+
+  webkit_web_view_execute_editing_command(WEBKIT_WEB_VIEW(browser->web_view), WEBKIT_EDITING_COMMAND_REDO);
+}
 
 void
 browser_copy_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
@@ -144,4 +171,69 @@ browser_paste_plain_cb(GSimpleAction *action, GVariant *parameter, gpointer user
         WEBKIT_WEB_VIEW(browser->web_view),
         WEBKIT_EDITING_COMMAND_PASTE_AS_PLAIN_TEXT);
   }
+}
+void
+browser_select_all_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+  GtkWidget *focused = gtk_window_get_focus(GTK_WINDOW(browser));
+
+  if (GTK_IS_EDITABLE(focused)) {
+    gtk_editable_select_region(GTK_EDITABLE(focused), 0, -1);
+  } else {
+    webkit_web_view_execute_editing_command(WEBKIT_WEB_VIEW(browser->web_view), WEBKIT_EDITING_COMMAND_SELECT_ALL);
+  }
+}
+
+void
+browser_reload_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+  webkit_web_view_reload(WEBKIT_WEB_VIEW(browser->web_view));
+}
+void
+browser_force_reload_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+  webkit_web_view_reload_bypass_cache(WEBKIT_WEB_VIEW(browser->web_view));
+}
+void
+browser_fullscreen_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+  GdkWindow *window = gtk_widget_get_window(GTK_WIDGET(browser));
+  GdkWindowState state = gdk_window_get_state(window);
+
+  if (state & GDK_WINDOW_STATE_FULLSCREEN) {
+    gtk_window_unfullscreen(GTK_WINDOW(browser));
+    browser_show_menu_bar(browser, true);
+  } else {
+    gtk_window_fullscreen(GTK_WINDOW(browser));
+    browser_show_menu_bar(browser, false);
+  }
+}
+
+void
+browser_close_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+  gtk_window_close(GTK_WINDOW(browser));
+}
+void
+browser_minimize_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+  (void) action;
+  (void) parameter;
+  Browser *browser = user_data;
+  gtk_window_iconify(GTK_WINDOW(browser));
 }
