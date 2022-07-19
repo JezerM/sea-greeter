@@ -447,7 +447,9 @@ LightDM_languages_getter_cb()
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = languages;
   while (curr != NULL) {
-    g_ptr_array_add(arr, LightDMLanguage_to_JSCValue(context, curr->data));
+    JSCValue *language = LightDMLanguage_to_JSCValue(context, curr->data);
+    if (language != NULL)
+      g_ptr_array_add(arr, language);
     curr = curr->next;
   }
   JSCValue *value = jsc_value_new_array_from_garray(context, arr);
@@ -492,7 +494,9 @@ LightDM_layouts_getter_cb()
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = layouts;
   while (curr != NULL) {
-    g_ptr_array_add(arr, LightDMLayout_to_JSCValue(context, curr->data));
+    JSCValue *layout = LightDMLayout_to_JSCValue(context, curr->data);
+    if (layout != NULL)
+      g_ptr_array_add(arr, layout);
     curr = curr->next;
   }
   JSCValue *value = jsc_value_new_array_from_garray(context, arr);
@@ -522,7 +526,9 @@ LightDM_remote_sessions_getter_cb()
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = sessions;
   while (curr != NULL) {
-    g_ptr_array_add(arr, LightDMSession_to_JSCValue(context, curr->data));
+    JSCValue *session = LightDMSession_to_JSCValue(context, curr->data);
+    if (session != NULL)
+      g_ptr_array_add(arr, session);
     curr = curr->next;
   }
   JSCValue *value = jsc_value_new_array_from_garray(context, arr);
@@ -565,7 +571,9 @@ LightDM_sessions_getter_cb()
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = sessions;
   while (curr != NULL) {
-    g_ptr_array_add(arr, LightDMSession_to_JSCValue(context, curr->data));
+    JSCValue *session = LightDMSession_to_JSCValue(context, curr->data);
+    if (session != NULL)
+      g_ptr_array_add(arr, session);
     curr = curr->next;
   }
   JSCValue *value = jsc_value_new_array_from_garray(context, arr);
@@ -618,7 +626,9 @@ LightDM_users_getter_cb()
   GPtrArray *arr = g_ptr_array_new();
   GList *curr = users;
   while (curr != NULL) {
-    g_ptr_array_add(arr, LightDMUser_to_JSCValue(context, curr->data));
+    JSCValue *user = LightDMUser_to_JSCValue(context, curr->data);
+    if (user != NULL)
+      g_ptr_array_add(arr, user);
     curr = curr->next;
   }
   JSCValue *value = jsc_value_new_array_from_garray(context, arr);

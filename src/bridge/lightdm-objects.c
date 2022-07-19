@@ -10,6 +10,8 @@
 JSCValue *
 LightDMUser_to_JSCValue(JSCContext *context, LightDMUser *user)
 {
+  if (!LIGHTDM_IS_USER(user))
+    return NULL;
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
 
   const gchar *background = lightdm_user_get_background(user);
@@ -47,6 +49,8 @@ LightDMUser_to_JSCValue(JSCContext *context, LightDMUser *user)
 JSCValue *
 LightDMSession_to_JSCValue(JSCContext *context, LightDMSession *session)
 {
+  if (!LIGHTDM_IS_SESSION(session))
+    return NULL;
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
 
   const gchar *comment = lightdm_session_get_comment(session);
@@ -63,6 +67,8 @@ LightDMSession_to_JSCValue(JSCContext *context, LightDMSession *session)
 JSCValue *
 LightDMLanguage_to_JSCValue(JSCContext *context, LightDMLanguage *language)
 {
+  if (!LIGHTDM_IS_LANGUAGE(language))
+    return NULL;
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
 
   const gchar *code = lightdm_language_get_code(language);
@@ -77,6 +83,8 @@ LightDMLanguage_to_JSCValue(JSCContext *context, LightDMLanguage *language)
 JSCValue *
 LightDMLayout_to_JSCValue(JSCContext *context, LightDMLayout *layout)
 {
+  if (!LIGHTDM_IS_LAYOUT(layout))
+    return NULL;
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
 
   const gchar *name = lightdm_layout_get_name(layout);
