@@ -48,12 +48,27 @@ set_keybindings()
     { "app.quit", { "<Control>Q", NULL } },
 
     { "win.toggle-inspector", { "<Shift><Primary>I", "F12", NULL } },
+
+    { "win.undo", { "<Primary>Z", NULL } },
+    { "win.redo", { "<Shift><Primary>Z", NULL } },
+
     { "win.copy", { "<Primary>C", NULL } },
     { "win.cut", { "<Primary>X", NULL } },
     { "win.paste", { "<Primary>V", NULL } },
     { "win.paste-plain", { "<Shift><Primary>V", NULL } },
+    { "win.select-all", { "<Primary>A", NULL } },
+
+    { "win.zoom-normal", { "<Primary>0", "<Primary>KP_0", NULL } },
     { "win.zoom-in", { "<Primary>plus", "<Primary>KP_Add", "<Primary>equal", "ZoomIn", NULL } },
     { "win.zoom-out", { "<Primary>minus", "<Primary>KP_Subtract", "ZoomOut", NULL } },
+    { "win.fullscreen", { "F11", NULL } },
+
+    { "win.reload", { "<Primary>R", "F5", "Refresh", "Reload", NULL } },
+    { "win.force-reload", { "<Shift><Primary>R", "<Shift>F5", NULL } },
+
+    { "win.close", { "<Primary>W", NULL } },
+    { "win.minimize", { "<Primary>M", NULL } },
+
     { NULL, { NULL } },
   };
 
