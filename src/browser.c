@@ -13,6 +13,14 @@ typedef struct {
 
 G_DEFINE_TYPE_WITH_PRIVATE(Browser, browser, GTK_TYPE_APPLICATION_WINDOW)
 
+typedef enum {
+  PROP_MONITOR = 1,
+  PROP_DEBUG_MODE,
+  N_PROPERTIES,
+} BrowserProperty;
+
+static GParamSpec *browser_properties[N_PROPERTIES] = { NULL };
+
 static void
 browser_dispose(GObject *gobject)
 {
@@ -77,17 +85,70 @@ browser_constructed(GObject *object)
 {
   G_OBJECT_CLASS(browser_parent_class)->constructed(object);
   Browser *browser = BROWSER_WINDOW(object);
+  BrowserPrivate *priv = browser_get_instance_private(browser);
+
+  GdkRectangle geometry;
+  gdk_monitor_get_geometry(browser->monitor, &geometry);
+
+  gtk_window_set_default_size(GTK_WINDOW(browser), geometry.width, geometry.height);
+
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_resource(provider, "/com/github/jezerm/sea_greeter/resources/style.css");
+  GdkDisplay *display = gdk_monitor_get_display(browser->monitor);
+  GdkScreen *screen = gdk_display_get_default_screen(display);
+  gtk_style_context_add_provider_for_screen(
+      screen,
+      GTK_STYLE_PROVIDER(provider),
+      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+  g_object_unref(provider);
 
   g_action_map_add_action_entries(G_ACTION_MAP(browser), win_entries, G_N_ELEMENTS(win_entries), browser);
 
   if (browser->debug_mode) {
     g_action_map_add_action_entries(G_ACTION_MAP(browser), win_debug_entries, G_N_ELEMENTS(win_debug_entries), browser);
+    browser_web_view_set_developer_tools(browser->web_view, true);
 
     GtkBuilder *builder = gtk_builder_new_from_resource("/com/github/jezerm/sea_greeter/resources/menu_bar.ui");
     GMenuModel *menu = G_MENU_MODEL(gtk_builder_get_object(builder, "menu"));
     priv->menu_bar = GTK_MENU_BAR(gtk_menu_bar_new_from_model(menu));
+    gtk_box_pack_start(priv->main_box, GTK_WIDGET(priv->menu_bar), false, true, 0);
 
     g_object_unref(builder);
+  } else {
+    browser_web_view_set_developer_tools(browser->web_view, false);
+    gtk_window_fullscreen(GTK_WINDOW(browser));
+  }
+}
+
+static void
+browser_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
+{
+  (void) pspec;
+  Browser *self = BROWSER_WINDOW(object);
+  switch ((BrowserProperty) property_id) {
+    case PROP_MONITOR:
+      self->monitor = g_value_dup_object(value);
+      break;
+    case PROP_DEBUG_MODE:
+      self->debug_mode = g_value_get_boolean(value);
+    default:
+      break;
+  }
+}
+static void
+browser_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
+{
+  (void) pspec;
+  Browser *self = BROWSER_WINDOW(object);
+  switch ((BrowserProperty) property_id) {
+    case PROP_MONITOR:
+      g_value_set_object(value, self->monitor);
+      break;
+    case PROP_DEBUG_MODE:
+      g_value_set_boolean(value, self->debug_mode);
+    default:
+      break;
   }
 }
 
@@ -97,11 +158,30 @@ browser_class_init(BrowserClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS(klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 
+  object_class->set_property = browser_set_property;
+  object_class->get_property = browser_get_property;
+
   object_class->dispose = browser_dispose;
   object_class->finalize = browser_finalize;
   object_class->constructed = browser_constructed;
 
   widget_class->destroy = browser_destroy;
+
+  browser_properties[PROP_MONITOR] = g_param_spec_object(
+      "monitor",
+      "Monitor",
+      "Monitor where browser should be placed",
+      GDK_TYPE_MONITOR,
+      G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
+
+  browser_properties[PROP_DEBUG_MODE] = g_param_spec_boolean(
+      "debug_mode",
+      "DebugMode",
+      "Whether the greeter is in debug mode or not",
+      false,
+      G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
+
+  g_object_class_install_properties(object_class, N_PROPERTIES, browser_properties);
 }
 
 static void
@@ -121,44 +201,17 @@ browser_init(Browser *self)
   gtk_box_pack_end(priv->main_box, GTK_WIDGET(box), true, true, 0);
 
   gtk_container_add(GTK_CONTAINER(self), GTK_WIDGET(priv->main_box));
-
-  g_object_unref(builder);
 }
 
 Browser *
 browser_new(GtkApplication *app, GdkMonitor *monitor)
 {
-  Browser *browser = g_object_new(BROWSER_TYPE, "application", app, NULL);
-  GdkRectangle geometry;
-  gdk_monitor_get_geometry(monitor, &geometry);
-
-  gtk_window_set_default_size(GTK_WINDOW(browser), geometry.width, geometry.height);
-
-  GtkCssProvider *provider = gtk_css_provider_new();
-  gtk_css_provider_load_from_resource(provider, "/com/github/jezerm/sea_greeter/resources/style.css");
-
-  GdkDisplay *display = gdk_monitor_get_display(monitor);
-  GdkScreen *screen = gdk_display_get_default_screen(display);
-  gtk_style_context_add_provider_for_screen(
-      screen,
-      GTK_STYLE_PROVIDER(provider),
-      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-  g_object_unref(provider);
-
+  Browser *browser = g_object_new(BROWSER_TYPE, "application", app, "monitor", monitor, NULL);
   return browser;
 }
 Browser *
 browser_new_debug(GtkApplication *app, GdkMonitor *monitor, gboolean debug_mode)
 {
-  Browser *browser = browser_new(app, monitor);
-  BrowserPrivate *priv = browser_get_instance_private(browser);
-  if (debug_mode) {
-    browser_web_view_set_developer_tools(browser->web_view, true);
-    gtk_box_pack_start(priv->main_box, GTK_WIDGET(priv->menu_bar), false, true, 0);
-  } else {
-    browser_web_view_set_developer_tools(browser->web_view, false);
-    gtk_window_fullscreen(GTK_WINDOW(browser));
-  }
+  Browser *browser = g_object_new(BROWSER_TYPE, "application", app, "monitor", monitor, "debug_mode", debug_mode, NULL);
   return browser;
 }

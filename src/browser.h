@@ -14,6 +14,7 @@ struct _Browser {
   GtkApplicationWindow parent_instance;
 
   BrowserWebView *web_view;
+  GdkMonitor *monitor;
   gboolean debug_mode;
 };
 
