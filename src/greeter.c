@@ -46,7 +46,14 @@ set_keybindings()
     const gchar *accelerators[9];
   } accels[] = {
     { "app.quit", { "<Control>Q", NULL } },
-    { "win.toggle-inspector", { "<shift><Primary>I", "F12", NULL } },
+
+    { "win.toggle-inspector", { "<Shift><Primary>I", "F12", NULL } },
+    { "win.copy", { "<Primary>C", NULL } },
+    { "win.cut", { "<Primary>X", NULL } },
+    { "win.paste", { "<Primary>V", NULL } },
+    { "win.paste-plain", { "<Shift><Primary>V", NULL } },
+    { "win.zoom-in", { "<Primary>plus", "<Primary>KP_Add", "<Primary>equal", "ZoomIn", NULL } },
+    { "win.zoom-out", { "<Primary>minus", "<Primary>KP_Subtract", "ZoomOut", NULL } },
     { NULL, { NULL } },
   };
 
@@ -80,47 +87,6 @@ app_quit_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 }
 
 /*
- * Toggle web view inspector
- */
-static void
-toggle_inspector_cb(GSimpleAction *action, GVariant *parameter, gpointer user_data)
-{
-  (void) action;
-  (void) parameter;
-  (void) user_data;
-  GApplication *app = g_application_get_default();
-
-  Browser *window_origin = NULL;
-
-  GList *windows = gtk_application_get_windows(GTK_APPLICATION(app));
-
-  GList *curr = windows;
-  while (curr != NULL) {
-    if (gtk_window_has_toplevel_focus(curr->data)) {
-      window_origin = curr->data;
-      break;
-    }
-    curr = curr->next;
-  }
-  if (window_origin == NULL || !BROWSER_IS_WINDOW(window_origin)) {
-    return;
-  }
-
-  BrowserWebView *web_view = window_origin->web_view;
-  if (!WEBKIT_IS_WEB_VIEW(web_view))
-    return;
-
-  WebKitWebInspector *inspector = webkit_web_view_get_inspector(WEBKIT_WEB_VIEW(web_view));
-  WebKitWebViewBase *inspector_web_view = webkit_web_inspector_get_web_view(inspector);
-
-  if (inspector_web_view != NULL) {
-    webkit_web_inspector_close(WEBKIT_WEB_INSPECTOR(inspector));
-  } else {
-    webkit_web_inspector_show(WEBKIT_WEB_INSPECTOR(inspector));
-  }
-}
-
-/*
  * Initialize app actions
  */
 static void
@@ -130,20 +96,8 @@ initialize_actions(GtkApplication *app)
     { "info", print_info, NULL, NULL, NULL, { 0 } },
     { "quit", app_quit_cb, NULL, NULL, NULL, { 0 } },
   };
-  static const GActionEntry win_entries[] = {
-    { "toggle-inspector", toggle_inspector_cb, NULL, NULL, NULL, { 0 } },
-  };
 
   g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries, G_N_ELEMENTS(app_entries), app);
-
-  GList *windows = gtk_application_get_windows(app);
-
-  GList *curr = windows;
-  while (curr != NULL) {
-    GtkWindow *win = curr->data;
-    g_action_map_add_action_entries(G_ACTION_MAP(win), win_entries, G_N_ELEMENTS(win_entries), win);
-    curr = curr->next;
-  }
 }
 
 /*
