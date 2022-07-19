@@ -1,5 +1,6 @@
 #include <webkit2/webkit2.h>
 
+#include "browser-commands.h"
 #include "browser-web-view.h"
 #include "browser.h"
 
@@ -29,6 +30,27 @@ browser_destroy(GtkWidget *self)
   g_ptr_array_remove(greeter_browsers, self);
 }
 
+static const GActionEntry win_entries[] = {
+  { "toggle-inspector", browser_toggle_inspector_cb, NULL, NULL, NULL, { 0 } },
+
+  { "copy", browser_copy_cb, NULL, NULL, NULL, { 0 } },
+  { "cut", browser_cut_cb, NULL, NULL, NULL, { 0 } },
+  { "paste", browser_paste_cb, NULL, NULL, NULL, { 0 } },
+  { "paste-plain", browser_paste_plain_cb, NULL, NULL, NULL, { 0 } },
+
+  { "zoom-in", browser_zoom_in_cb, NULL, NULL, NULL, { 0 } },
+  { "zoom-out", browser_zoom_out_cb, NULL, NULL, NULL, { 0 } },
+};
+
+static void
+browser_constructed(GObject *object)
+{
+  G_OBJECT_CLASS(browser_parent_class)->constructed(object);
+  Browser *browser = BROWSER_WINDOW(object);
+
+  g_action_map_add_action_entries(G_ACTION_MAP(browser), win_entries, G_N_ELEMENTS(win_entries), browser);
+}
+
 static void
 browser_class_init(BrowserClass *klass)
 {
@@ -37,6 +59,7 @@ browser_class_init(BrowserClass *klass)
 
   object_class->dispose = browser_dispose;
   object_class->finalize = browser_finalize;
+  object_class->constructed = browser_constructed;
 
   widget_class->destroy = browser_destroy;
 }
