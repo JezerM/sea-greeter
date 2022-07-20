@@ -1,10 +1,9 @@
 #include <webkit2/webkit-web-extension.h>
 
-#include "bridge/theme_utils.h"
-
 #include "extension/greeter_config.h"
 #include "extension/lightdm-signal.h"
 #include "extension/lightdm.h"
+#include "extension/theme_utils.h"
 
 WebKitWebExtension *WebExtension;
 extern guint64 page_id;
@@ -19,10 +18,10 @@ extension_initialize(
   (void) web_page;
   (void) extension;
   LightDM_signal_initialize(world, web_page, web_frame, extension);
-  ThemeUtils_initialize(world, web_page, web_frame, extension);
 
   LightDM_initialize(world, web_page, web_frame, extension);
   GreeterConfig_initialize(world, web_page, web_frame, extension);
+  ThemeUtils_initialize(world, web_page, web_frame, extension);
 }
 
 void

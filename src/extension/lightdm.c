@@ -9,9 +9,6 @@
 #include "logger.h"
 #include "settings.h"
 
-#include "bridge/lightdm-objects.h"
-#include "bridge/utils.h"
-
 #include "extension/lightdm-signal.h"
 #include "utils/ipc-renderer.h"
 #include "utils/utils.h"
