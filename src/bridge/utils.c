@@ -19,26 +19,34 @@ js_value_to_string_or_null(JSCValue *value)
  * Get index position of *find* inside *source*
  */
 int
-g_string_get_index_of(GString *source, GString *find)
+string_get_index_of(const char *source, const char *find)
 {
-  gchar *found = strstr(source->str, find->str);
-  if (found != NULL)
-    return found - source->str;
-  return -1;
+  int ind = -1;
+  char *found = strstr(source, find);
+  if (found != NULL) {
+    ind = found - source;
+  }
+  return ind;
 }
 
 /**
  * Get index position of last ocurrence of *find* inside *source*
  */
 int
-g_string_get_last_index_of(GString *source, GString *find)
+string_get_last_index_of(const char *source, const char *find)
 {
-  int index = -1, tmp;
-  GString *str = g_string_new(source->str);
-  while ((tmp = g_string_get_index_of(str, find)) != -1) {
-    str = g_string_erase(str, 0, tmp + find->len);
-    index += tmp + find->len;
+  int index = -1;
+
+  char *source_rev = g_utf8_strreverse(source, -1);
+  char *find_rev = g_utf8_strreverse(find, -1);
+
+  int index_rev = string_get_index_of(source_rev, find_rev);
+  if (index_rev != -1) {
+    index = strlen(source) - index_rev;
   }
+
+  g_free(source_rev);
+  g_free(find_rev);
   return index;
 }
 

@@ -133,13 +133,13 @@ GreeterConfig_layouts_getter_cb()
   return value;
 }
 
-static char *
+static const char *
 g_variant_to_string(GVariant *variant)
 {
   if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
     return NULL;
   const gchar *value = g_variant_get_string(variant, NULL);
-  return g_strdup(value);
+  return value;
 }
 static GPtrArray *
 jsc_array_to_g_ptr_array(JSCValue *jsc_array)
@@ -179,13 +179,14 @@ handle_greeter_config_property(WebKitUserMessage *message, const gchar *method, 
       }
 
       JSCValue *jsc_value = ((JSCValue * (*) (void) ) current->getter)();
-      const gchar *json_value = jsc_value_to_json(jsc_value, 0);
+      gchar *json_value = jsc_value_to_json(jsc_value, 0);
       /*printf("JSON value: '%s'\n", json_value);*/
 
       GVariant *value = g_variant_new_string(json_value);
       WebKitUserMessage *reply = webkit_user_message_new("reply", value);
 
       webkit_user_message_send_reply(message, reply);
+      g_free(json_value);
       break;
     }
     i++;
@@ -201,7 +202,7 @@ handle_greeter_config_accessor(WebKitWebView *web_view, WebKitUserMessage *messa
   if (g_strcmp0(name, "greeter_config") != 0)
     return;
 
-  WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
+  g_autoptr(WebKitUserMessage) empty_msg = webkit_user_message_new("", NULL);
   GVariant *msg_param = webkit_user_message_get_parameters(message);
 
   if (!g_variant_is_of_type(msg_param, G_VARIANT_TYPE_ARRAY)) {
@@ -215,18 +216,19 @@ handle_greeter_config_accessor(WebKitWebView *web_view, WebKitUserMessage *messa
   }
 
   JSCContext *context = get_global_context();
-  char *method = NULL;
   JSCValue *parameters = NULL;
 
   GVariant *method_var = g_variant_get_child_value(msg_param, 0);
   GVariant *params_var = g_variant_get_child_value(msg_param, 1);
 
-  method = g_variant_to_string(method_var);
+  const gchar *method = g_variant_to_string(method_var);
   const gchar *json_params = g_variant_to_string(params_var);
   parameters = jsc_value_new_from_json(context, json_params);
   /*printf("Handling: '%s'\n", method);*/
   /*printf("JSON params: '%s'\n", json_params);*/
 
+  g_variant_unref(method_var);
+  g_variant_unref(params_var);
   if (method == NULL) {
     webkit_user_message_send_reply(message, empty_msg);
     return;
@@ -236,7 +238,6 @@ handle_greeter_config_accessor(WebKitWebView *web_view, WebKitUserMessage *messa
 
   handle_greeter_config_property(message, method, g_array);
 
-  g_free(method);
   g_ptr_array_free(g_array, true);
 }
 

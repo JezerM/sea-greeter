@@ -260,7 +260,6 @@ main(int argc, char **argv)
   /*print_greeter_config();*/
 
   WebKitApplicationInfo *web_info = webkit_application_info_new();
-  webkit_application_info_ref(web_info);
   webkit_application_info_set_name(web_info, "com.github.jezerm.sea-greeter");
 
   g_signal_connect(app, "activate", G_CALLBACK(app_activate_cb), NULL);
@@ -271,6 +270,7 @@ main(int argc, char **argv)
   g_application_run(G_APPLICATION(app), argc, argv);
 
   webkit_application_info_unref(web_info);
+  LightDM_destroy();
   free_greeter_config();
   return 0;
 }

@@ -29,7 +29,7 @@ load_theme(WebKitWebView *web_view)
   }
 
   if (access(path_to_theme, F_OK) != 0) {
-    logger_warn(g_strdup_printf("\"%s\" theme does not exists. Using \"%s\" theme", theme, def_theme));
+    logger_warn("%s", g_strdup_printf("\"%s\" theme does not exists. Using \"%s\" theme", theme, def_theme));
     g_free(path_to_theme);
     path_to_theme = g_strconcat(dir, def_theme, "/index.html", NULL);
   }
@@ -55,6 +55,7 @@ load_theme(WebKitWebView *web_view)
   char *uri = g_strconcat("file://", greeter_config->greeter->theme->str, NULL);
   webkit_web_view_load_html(web_view, html->str, uri);
   g_free(uri);
+  g_string_free(html, true);
 
   logger_debug("Theme loaded");
 }

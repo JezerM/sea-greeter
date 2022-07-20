@@ -11,9 +11,13 @@
   GDateTime *now = g_date_time_new_now_local();\
   char *timestamp = g_date_time_format(now, "%Y-%m-%d %H:%M:%S");\
   char *str = g_strdup_printf(message, ##__VA_ARGS__);\
+  char *filename = g_path_get_basename(__FILE__);\
   fprintf(stderr, "%s [ %s ] %s %d: %s\n",\
-      timestamp, type, g_path_get_basename(__FILE__), __LINE__, str);\
+      timestamp, type, filename, __LINE__, str);\
+  g_date_time_unref(now);\
+  g_free(timestamp);\
   g_free(str);\
+  g_free(filename);\
 }
 
 #define logger_debug(message, ...) { logger_raw("DEBUG", message, ##__VA_ARGS__) }

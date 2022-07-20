@@ -22,6 +22,7 @@ jsc_parameters_to_g_variant_array(JSCContext *context, const gchar *name, GPtrAr
 
   GVariant *result = g_variant_new_array(G_VARIANT_TYPE_STRING, param_arr, G_N_ELEMENTS(param_arr));
 
+  g_free(json_params);
   return result;
 }
 

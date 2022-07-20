@@ -7,6 +7,8 @@
 void
 LightDM_initialize();
 void
+LightDM_destroy();
+void
 handle_lightdm_accessor(
     WebKitWebView *web_view,
     WebKitUserMessage *message);

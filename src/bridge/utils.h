@@ -25,10 +25,10 @@ gchar *
 js_value_to_string_or_null(JSCValue *value);
 
 int
-g_string_get_index_of(GString *source, GString *find);
+string_get_index_of(const char *source, const char *find);
 
 int
-g_string_get_last_index_of(GString *source, GString *find);
+string_get_last_index_of(const char *source, const char *find);
 
 void
 initialize_class_properties(JSCClass *class, const struct JSCClassProperty properties[]);
