@@ -269,6 +269,7 @@ main(int argc, char **argv)
 
   g_application_run(G_APPLICATION(app), argc, argv);
 
+  g_object_unref(app);
   webkit_application_info_unref(web_info);
   LightDM_destroy();
   free_greeter_config();

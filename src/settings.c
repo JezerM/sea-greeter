@@ -118,14 +118,68 @@ init_greeter_config()
 }
 
 void
+free_greeter_config_branding()
+{
+  if (greeter_config == NULL)
+    return;
+  else if (greeter_config->branding == NULL)
+    return;
+
+  GreeterConfigBranding *branding = greeter_config->branding;
+  g_string_free(branding->background_images_dir, true);
+  g_string_free(branding->logo_image, true);
+  g_string_free(branding->user_image, true);
+  g_free(branding);
+}
+void
+free_greeter_config_greeter()
+{
+  if (greeter_config == NULL)
+    return;
+  else if (greeter_config->greeter == NULL)
+    return;
+
+  GreeterConfigGreeter *greeter = greeter_config->greeter;
+  g_string_free(greeter->theme, true);
+  g_string_free(greeter->icon_theme, true);
+  g_string_free(greeter->time_language, true);
+  g_free(greeter);
+}
+void
+free_greeter_config_features()
+{
+  if (greeter_config == NULL)
+    return;
+  else if (greeter_config->features == NULL)
+    return;
+
+  GreeterConfigFeatures *features = greeter_config->features;
+  g_free(features->backlight);
+  g_free(features);
+}
+void
+free_greeter_config_app()
+{
+  if (greeter_config == NULL)
+    return;
+  else if (greeter_config->app == NULL)
+    return;
+
+  GreeterConfigApp *app = greeter_config->app;
+  g_string_free(app->theme_dir, true);
+  g_free(app);
+}
+
+void
 free_greeter_config()
 {
-  /*free_greeter_config_branding();*/
-  /*free_greeter_config_greeter();*/
-  /*free_greeter_config_features();*/
-  /*free_greeter_config_app();*/
+  free_greeter_config_branding();
+  free_greeter_config_greeter();
+  free_greeter_config_features();
+  free_greeter_config_app();
   g_list_free(greeter_config->layouts);
   g_free(greeter_config);
+  greeter_config = NULL;
 }
 
 static bool
@@ -304,5 +358,5 @@ load_configuration()
   } while (node != NULL);
   g_node_destroy(cfg);
 
-  /*logger_debug("Configuration loaded");*/
+  logger_debug("Configuration loaded");
 }
