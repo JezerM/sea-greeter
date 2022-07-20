@@ -18,7 +18,7 @@ static LightDMGreeter *Greeter;
 static LightDMUserList *UserList;
 extern guint64 page_id;
 
-static GString *shared_data_directory;
+GString *shared_data_directory;
 
 static JSCVirtualMachine *VirtualMachine = NULL;
 static JSCContext *Context = NULL;

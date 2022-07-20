@@ -5,90 +5,94 @@
 #include <unistd.h>
 
 #include <jsc/jsc.h>
+#include <webkit2/webkit2.h>
 
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
 #include "logger.h"
 #include "settings.h"
 
-#include "utils/ipc-renderer.h"
+static JSCVirtualMachine *VirtualMachine = NULL;
+static JSCContext *Context = NULL;
 
-static WebKitWebPage *WebPage = NULL;
-ldm_object *ThemeUtils_object = NULL;
+static GPtrArray *allowed_dirs = NULL;
+extern GString *shared_data_directory;
 
-static void *
-jsc_callback_call(JSCContext *context, JSCValue *callback, JSCValue *value)
+static JSCContext *
+get_global_context()
 {
-  JSCValue *jsc_console = jsc_context_get_value(context, "console");
-  if (!jsc_value_is_function(callback)) {
-    (void) jsc_value_object_invoke_method(
-        jsc_console,
-        "error",
-        G_TYPE_STRING,
-        "theme_utils.dirlist(): callback is not a function",
-        G_TYPE_NONE);
-    return NULL;
-  }
-
-  (void) jsc_value_function_call(callback, JSC_TYPE_VALUE, value, G_TYPE_NONE);
-
-  return NULL;
+  if (Context == NULL)
+    Context = jsc_context_new_with_virtual_machine(VirtualMachine);
+  return Context;
 }
 
+typedef struct _BridgeObject {
+  GPtrArray *properties;
+  GPtrArray *methods;
+} BridgeObject;
+
+static BridgeObject ThemeUtils_object;
+
 static void *
-ThemeUtils_dirlist_cb(ldm_object *instance, GPtrArray *arguments)
+ThemeUtils_dirlist_cb(GPtrArray *arguments)
 {
-  JSCContext *context = instance->context;
-  if (arguments->len < 3) {
+  JSCContext *context = get_global_context();
+  if (arguments->len < 2) {
     return NULL;
   }
-  JSCValue *jsc_console = jsc_context_get_value(context, "console");
 
   JSCValue *jsc_path = arguments->pdata[0];
   JSCValue *jsc_only_images = arguments->pdata[1];
-  JSCValue *jsc_callback = arguments->pdata[2];
 
   JSCValue *value = jsc_value_new_array(context, G_TYPE_NONE);
 
-  gchar *path = js_value_to_string_or_null(jsc_path);
-  if (path == NULL) {
-    (void) jsc_value_object_invoke_method(
-        jsc_console,
-        "error",
-        G_TYPE_STRING,
-        "theme_utils.dirlist(): path must be a non-empty string!",
-        G_TYPE_NONE);
-    return jsc_callback_call(context, jsc_callback, value);
+  g_autofree gchar *path = js_value_to_string_or_null(jsc_path);
+  path = g_strstrip(path);
+  if (path == NULL || g_strcmp0(path, "") == 0) {
+    return value;
   }
 
   if (g_strcmp0(path, "/") == 0) {
-    return jsc_callback_call(context, jsc_callback, value);
+    return value;
   }
   if (g_strcmp0(g_utf8_substring(path, 0, 1), "./") == 0) {
-    return jsc_callback_call(context, jsc_callback, value);
+    return value;
   }
 
   char resolved_path[PATH_MAX];
   if (realpath(path, resolved_path) == NULL) {
     /*printf("Path normalize error: '%s'\n", strerror(errno));*/
-    return jsc_callback_call(context, jsc_callback, value);
+    return value;
   }
 
   struct stat path_stat;
   stat(resolved_path, &path_stat);
   if (!g_path_is_absolute(resolved_path) || !(S_ISDIR(path_stat.st_mode))) {
     /*printf("Not absolute nor a directory\n");*/
-    return jsc_callback_call(context, jsc_callback, value);
+    return value;
   }
 
-  // if (allowed)
+  gboolean allowed = false;
+
+  for (guint i = 0; i < allowed_dirs->len; i++) {
+    char *allowed_dir = allowed_dirs->pdata[i];
+    if (strncmp(resolved_path, allowed_dir, strlen(allowed_dir)) == 0) {
+      allowed = true;
+      break;
+    }
+  }
+
+  if (!allowed) {
+    logger_error("Path \"%s\" is not allowed", resolved_path);
+    return value;
+  }
 
   DIR *dir;
   struct dirent *ent;
   dir = opendir(resolved_path);
   if (dir == NULL) {
     printf("Opendir error: '%s'\n", strerror(errno));
-    return jsc_callback_call(context, jsc_callback, value);
+    return value;
   }
 
   GPtrArray *files = g_ptr_array_new();
@@ -121,143 +125,146 @@ ThemeUtils_dirlist_cb(ldm_object *instance, GPtrArray *arguments)
   value = jsc_value_new_array_from_garray(context, files);
   g_ptr_array_free(files, true);
 
-  jsc_callback_call(context, jsc_callback, value);
-  return NULL;
+  return value;
 }
 
-char *time_language = NULL;
-
-static JSCValue *
-ThemeUtils_get_current_localized_date_cb(ldm_object *instance, GPtrArray *arguments)
+static const char *
+g_variant_to_string(GVariant *variant)
 {
-  (void) arguments;
-  JSCContext *context = instance->context;
+  if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
+    return NULL;
+  const gchar *value = g_variant_get_string(variant, NULL);
+  return value;
+}
+static GPtrArray *
+jsc_array_to_g_ptr_array(JSCValue *jsc_array)
+{
+  if (!jsc_value_is_array(jsc_array)) {
+    return NULL;
+  }
+  GPtrArray *array = g_ptr_array_new();
+  JSCValue *jsc_array_length = jsc_value_object_get_property(jsc_array, "length");
 
-  JSCValue *Intl = jsc_context_get_value(context, "Intl");
-  JSCValue *DateTimeFormat = jsc_value_object_get_property(Intl, "DateTimeFormat");
+  int length = jsc_value_to_int32(jsc_array_length);
 
-  GPtrArray *locales = g_ptr_array_new();
-
-  if (time_language == NULL) {
-    JSCValue *jsc_time_language = jsc_context_evaluate(context, "greeter_config.greeter.time_language", 36);
-    time_language = jsc_value_to_string(jsc_time_language);
+  for (int i = 0; i < length; i++) {
+    g_ptr_array_add(array, jsc_value_object_get_property_at_index(jsc_array, i));
   }
 
-  if (g_strcmp0(time_language, "") != 0) {
-    g_ptr_array_add(locales, jsc_value_new_string(context, time_language));
-  }
-
-  JSCValue *jsc_locales = jsc_value_new_array_from_garray(context, locales);
-
-  JSCValue *two_digit = jsc_value_new_string(context, "2-digit");
-  JSCValue *options_date = jsc_value_new_object(context, NULL, NULL);
-  jsc_value_object_set_property(options_date, "day", two_digit);
-  jsc_value_object_set_property(options_date, "month", two_digit);
-  jsc_value_object_set_property(options_date, "year", two_digit);
-
-  JSCValue *fmtDate
-      = jsc_value_function_call(DateTimeFormat, JSC_TYPE_VALUE, jsc_locales, JSC_TYPE_VALUE, options_date, G_TYPE_NONE);
-
-  JSCValue *Now = jsc_context_evaluate(context, "new Date()", 10);
-
-  JSCValue *date = jsc_value_object_invoke_method(fmtDate, "format", JSC_TYPE_VALUE, Now, G_TYPE_NONE);
-
-  return date;
+  return array;
 }
 
-static JSCValue *
-ThemeUtils_get_current_localized_time_cb(ldm_object *instance, GPtrArray *arguments)
+static void
+handle_theme_utils_method(WebKitUserMessage *message, const gchar *method, GPtrArray *parameters)
 {
-  (void) arguments;
-  JSCContext *context = instance->context;
+  int i = 0;
+  struct JSCClassMethod *current = ThemeUtils_object.methods->pdata[i];
+  while (current->name != NULL) {
+    /*printf("Current: %d - %s\n", i, current->name);*/
+    if (g_strcmp0(current->name, method) == 0) {
+      JSCValue *jsc_value = ((JSCValue * (*) (GPtrArray *) ) current->callback)(parameters);
+      gchar *json_value = jsc_value_to_json(jsc_value, 0);
+      /*printf("JSON value: '%s'\n", json_value);*/
 
-  JSCValue *Intl = jsc_context_get_value(context, "Intl");
-  JSCValue *DateTimeFormat = jsc_value_object_get_property(Intl, "DateTimeFormat");
+      GVariant *value = g_variant_new_string(json_value);
+      WebKitUserMessage *reply = webkit_user_message_new("reply", value);
 
-  GPtrArray *locales = g_ptr_array_new();
-
-  if (time_language == NULL) {
-    JSCValue *jsc_time_language = jsc_context_evaluate(context, "greeter_config.greeter.time_language", 36);
-    time_language = jsc_value_to_string(jsc_time_language);
+      webkit_user_message_send_reply(message, reply);
+      g_free(json_value);
+      break;
+    }
+    i++;
+    current = ThemeUtils_object.methods->pdata[i];
   }
-  /*printf("Time language: '%s'\n", time_language);*/
-
-  if (g_strcmp0(time_language, "") != 0) {
-    g_ptr_array_add(locales, jsc_value_new_string(context, time_language));
-  }
-
-  JSCValue *jsc_locales = jsc_value_new_array_from_garray(context, locales);
-
-  JSCValue *two_digit = jsc_value_new_string(context, "2-digit");
-  JSCValue *options_date = jsc_value_new_object(context, NULL, NULL);
-  jsc_value_object_set_property(options_date, "hour", two_digit);
-  jsc_value_object_set_property(options_date, "minute", two_digit);
-
-  JSCValue *fmtDate
-      = jsc_value_function_call(DateTimeFormat, JSC_TYPE_VALUE, jsc_locales, JSC_TYPE_VALUE, options_date, G_TYPE_NONE);
-
-  JSCValue *Now = jsc_context_evaluate(context, "new Date()", 10);
-
-  JSCValue *date = jsc_value_object_invoke_method(fmtDate, "format", JSC_TYPE_VALUE, Now, G_TYPE_NONE);
-
-  return date;
-}
-
-/**
- * ThemeUtils Class constructor, should be called only once in sea-greeter's life
- */
-static JSCValue *
-ThemeUtils_constructor(JSCContext *context)
-{
-  return jsc_value_new_null(context);
 }
 
 void
-ThemeUtils_initialize(
-    WebKitScriptWorld *world,
-    WebKitWebPage *web_page,
-    WebKitFrame *web_frame,
-    WebKitWebExtension *extension)
+handle_theme_utils_accessor(WebKitWebView *web_view, WebKitUserMessage *message)
 {
-  WebPage = web_page;
-  (void) extension;
+  (void) web_view;
+  const char *name = webkit_user_message_get_name(message);
+  if (g_strcmp0(name, "theme_utils") != 0)
+    return;
 
-  JSCContext *js_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
-  JSCValue *global_object = jsc_context_get_global_object(js_context);
+  g_autoptr(WebKitUserMessage) empty_msg = webkit_user_message_new("", NULL);
+  GVariant *msg_param = webkit_user_message_get_parameters(message);
 
-  if (ThemeUtils_object != NULL) {
-    jsc_value_object_set_property(global_object, "theme_utils", ThemeUtils_object->value);
+  if (!g_variant_is_of_type(msg_param, G_VARIANT_TYPE_ARRAY)) {
+    webkit_user_message_send_reply(message, empty_msg);
+    return;
+  }
+  int parameters_length = g_variant_n_children(msg_param);
+  if (parameters_length == 0 || parameters_length > 2) {
+    webkit_user_message_send_reply(message, empty_msg);
     return;
   }
 
-  JSCClass *ThemeUtils_class = jsc_context_register_class(js_context, "__GreeterConfig", NULL, NULL, NULL);
+  JSCContext *context = get_global_context();
+  JSCValue *parameters = NULL;
 
-  JSCValue *gc_constructor = jsc_class_add_constructor(
-      ThemeUtils_class,
-      NULL,
-      G_CALLBACK(ThemeUtils_constructor),
-      js_context,
-      NULL,
-      JSC_TYPE_VALUE,
-      0,
-      NULL);
+  GVariant *method_var = g_variant_get_child_value(msg_param, 0);
+  GVariant *params_var = g_variant_get_child_value(msg_param, 1);
 
+  const gchar *method = g_variant_to_string(method_var);
+  const gchar *json_params = g_variant_to_string(params_var);
+  parameters = jsc_value_new_from_json(context, json_params);
+  /*printf("Handling: '%s'\n", method);*/
+  /*printf("JSON params: '%s'\n", json_params);*/
+
+  g_variant_unref(method_var);
+  g_variant_unref(params_var);
+  if (method == NULL) {
+    webkit_user_message_send_reply(message, empty_msg);
+    return;
+  }
+
+  GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
+
+  handle_theme_utils_method(message, method, g_array);
+
+  g_ptr_array_free(g_array, true);
+}
+
+void
+ThemeUtils_destroy()
+{
+  g_ptr_array_free(ThemeUtils_object.properties, true);
+  g_ptr_array_free(ThemeUtils_object.methods, true);
+
+  g_ptr_array_free(allowed_dirs, true);
+}
+
+void
+ThemeUtils_initialize()
+{
   const struct JSCClassMethod ThemeUtils_methods[] = {
     { "dirlist", G_CALLBACK(ThemeUtils_dirlist_cb), G_TYPE_NONE },
-    { "get_current_localized_date", G_CALLBACK(ThemeUtils_get_current_localized_date_cb), JSC_TYPE_VALUE },
-    { "get_current_localized_time", G_CALLBACK(ThemeUtils_get_current_localized_time_cb), JSC_TYPE_VALUE },
     { NULL, NULL, 0 },
   };
 
-  initialize_class_methods(ThemeUtils_class, ThemeUtils_methods);
+  GPtrArray *ldm_methods = g_ptr_array_new_full(G_N_ELEMENTS(ThemeUtils_methods), NULL);
+  for (gsize i = 0; i < G_N_ELEMENTS(ThemeUtils_methods); i++) {
+    struct JSCClassMethod *method = malloc(sizeof *method);
+    method->name = ThemeUtils_methods[i].name;
+    method->return_type = ThemeUtils_methods[i].return_type;
+    method->callback = ThemeUtils_methods[i].callback;
+    g_ptr_array_add(ldm_methods, method);
+  }
 
-  JSCValue *value = jsc_value_constructor_callv(gc_constructor, 0, NULL);
-  ThemeUtils_object = malloc(sizeof *ThemeUtils_object);
-  ThemeUtils_object->value = value;
-  ThemeUtils_object->context = js_context;
+  VirtualMachine = jsc_virtual_machine_new();
 
-  JSCValue *theme_utils_object = jsc_value_new_object(js_context, ThemeUtils_object, ThemeUtils_class);
-  ThemeUtils_object->value = theme_utils_object;
+  ThemeUtils_object.properties = NULL;
+  ThemeUtils_object.methods = ldm_methods;
 
-  jsc_value_object_set_property(global_object, "theme_utils", theme_utils_object);
+  allowed_dirs = g_ptr_array_new();
+
+  char resolved_path[PATH_MAX];
+  realpath(greeter_config->greeter->theme->str, resolved_path);
+  char *theme_dir = g_path_get_dirname(resolved_path);
+
+  g_ptr_array_add(allowed_dirs, greeter_config->app->theme_dir->str);
+  g_ptr_array_add(allowed_dirs, greeter_config->branding->background_images_dir->str);
+  g_ptr_array_add(allowed_dirs, shared_data_directory);
+  g_ptr_array_add(allowed_dirs, theme_dir);
+  g_ptr_array_add(allowed_dirs, g_strdup(g_get_tmp_dir()));
 }

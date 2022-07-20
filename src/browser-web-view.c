@@ -2,6 +2,7 @@
 
 #include "bridge/greeter_config.h"
 #include "bridge/lightdm.h"
+#include "bridge/theme_utils.h"
 #include "browser-web-view.h"
 #include "logger.h"
 
@@ -51,6 +52,7 @@ browser_web_view_user_message_received_cb(BrowserWebView *web_view, WebKitUserMe
 
   handle_lightdm_accessor(WEBKIT_WEB_VIEW(web_view), message);
   handle_greeter_config_accessor(WEBKIT_WEB_VIEW(web_view), message);
+  handle_theme_utils_accessor(WEBKIT_WEB_VIEW(web_view), message);
 }
 static gboolean
 browser_web_view_context_menu_cb(
