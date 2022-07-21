@@ -4,6 +4,16 @@
 
 #include "bridge/utils.h"
 
+static JSCContext *Context = NULL;
+
+JSCContext *
+get_global_context()
+{
+  if (Context == NULL)
+    Context = jsc_context_new();
+  return Context;
+}
+
 /**
  * Converts a JSCValue to a string
  */

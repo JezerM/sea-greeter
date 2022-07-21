@@ -4,6 +4,12 @@
 #include <glib.h>
 #include <jsc/jsc.h>
 
+const char *
+g_variant_to_string(GVariant *variant);
+
+GPtrArray *
+jsc_array_to_g_ptr_array(JSCValue *jsc_array);
+
 GVariant *
 jsc_parameters_to_g_variant_array(
     JSCContext *context,
