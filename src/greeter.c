@@ -273,7 +273,11 @@ main(int argc, char **argv)
 
   g_object_unref(app);
   webkit_application_info_unref(web_info);
+
   LightDM_destroy();
+  GreeterConfig_destroy();
+  ThemeUtils_destroy();
+
   free_greeter_config();
   return 0;
 }
