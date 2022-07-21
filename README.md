@@ -21,11 +21,12 @@ There are lots of issues, even not documented here, so it is not recommended to 
 
 - [x] Window does not start in fullscreen when no window manager available
 - [ ] No multi-monitor support yet
+- [ ] Secure mode is not implemented.
 - [x] No command line arguments support
 - [ ] No brightness and battery features support
 - [x] No `greeter_config.layouts` support
 - [x] Debug mode is always active (for testing)
-- [ ] Memory management might not be correct (possible memory leaks)
+- [x] Memory management might not be correct; possible memory leaks. (I hope this is fixed)
 - [ ] No themes preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
 - [ ] No config preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
 - [x] The webView freezes when a .face image fails to be loaded.
