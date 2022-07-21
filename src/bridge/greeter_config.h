@@ -5,6 +5,8 @@
 #include <lightdm-gobject-1/lightdm.h>
 
 void
+GreeterConfig_destroy();
+void
 GreeterConfig_initialize();
 void
 handle_greeter_config_accessor(

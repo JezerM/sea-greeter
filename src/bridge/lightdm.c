@@ -7,8 +7,10 @@
 #include <lightdm-gobject-1/lightdm.h>
 #include <webkit2/webkit2.h>
 
+#include "bridge/bridge-object.h"
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
+
 #include "browser.h"
 #include "logger.h"
 #include "settings.h"
@@ -20,25 +22,9 @@ extern guint64 page_id;
 
 GString *shared_data_directory;
 
-static JSCVirtualMachine *VirtualMachine = NULL;
-static JSCContext *Context = NULL;
-
 extern GPtrArray *greeter_browsers;
 
-static JSCContext *
-get_global_context()
-{
-  if (Context == NULL)
-    Context = jsc_context_new_with_virtual_machine(VirtualMachine);
-  return Context;
-}
-
-typedef struct _BridgeObject {
-  GPtrArray *properties;
-  GPtrArray *methods;
-} BridgeObject;
-
-static BridgeObject LightDM_object;
+static BridgeObject *LightDM_object = NULL;
 
 /* LightDM Class definitions */
 
@@ -753,147 +739,18 @@ LightDM_constructor()
   logger_debug("LightDM API connected");
 }
 
-static const char *
-g_variant_to_string(GVariant *variant)
-{
-  if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
-    return NULL;
-  const gchar *value = g_variant_get_string(variant, NULL);
-  return value;
-}
-static GPtrArray *
-jsc_array_to_g_ptr_array(JSCValue *jsc_array)
-{
-  if (!jsc_value_is_array(jsc_array)) {
-    return NULL;
-  }
-  GPtrArray *array = g_ptr_array_new();
-  JSCValue *jsc_array_length = jsc_value_object_get_property(jsc_array, "length");
-
-  int length = jsc_value_to_int32(jsc_array_length);
-
-  for (int i = 0; i < length; i++) {
-    g_ptr_array_add(array, jsc_value_object_get_property_at_index(jsc_array, i));
-  }
-
-  return array;
-}
-
-static void
-handle_lightdm_property(WebKitUserMessage *message, const gchar *method, GPtrArray *parameters)
-{
-  (void) parameters;
-
-  int i = 0;
-  struct JSCClassProperty *current = LightDM_object.properties->pdata[i];
-  while (current->name != NULL) {
-    /*printf("Current: %d - %s\n", i, current->name);*/
-    if (g_strcmp0(current->name, method) == 0) {
-
-      if (parameters->len > 0) {
-        JSCValue *param = parameters->pdata[0];
-        ((void (*)(JSCValue *)) current->setter)(param);
-        WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
-        webkit_user_message_send_reply(message, empty_msg);
-        break;
-      }
-
-      JSCValue *jsc_value = ((JSCValue * (*) (void) ) current->getter)();
-      gchar *json_value = jsc_value_to_json(jsc_value, 0);
-      /*printf("JSON value: '%s'\n", json_value);*/
-
-      GVariant *value = g_variant_new_string(json_value);
-      WebKitUserMessage *reply = webkit_user_message_new("reply", value);
-
-      webkit_user_message_send_reply(message, reply);
-      g_free(json_value);
-      break;
-    }
-    i++;
-    current = LightDM_object.properties->pdata[i];
-  }
-}
-static void
-handle_lightdm_method(WebKitUserMessage *message, const gchar *method, GPtrArray *parameters)
-{
-
-  int i = 0;
-  struct JSCClassMethod *current = LightDM_object.methods->pdata[i];
-  while (current->name != NULL) {
-    /*printf("Current: %d - %s\n", i, current->name);*/
-    if (g_strcmp0(current->name, method) == 0) {
-      JSCValue *jsc_value = ((JSCValue * (*) (GPtrArray *) ) current->callback)(parameters);
-      gchar *json_value = jsc_value_to_json(jsc_value, 0);
-      /*printf("JSON value: '%s'\n", json_value);*/
-
-      GVariant *value = g_variant_new_string(json_value);
-      WebKitUserMessage *reply = webkit_user_message_new("reply", value);
-
-      webkit_user_message_send_reply(message, reply);
-      g_free(json_value);
-      break;
-    }
-    i++;
-    current = LightDM_object.methods->pdata[i];
-  }
-}
-
 void
 handle_lightdm_accessor(WebKitWebView *web_view, WebKitUserMessage *message)
 {
-  (void) web_view;
-  const char *name = webkit_user_message_get_name(message);
-  if (g_strcmp0(name, "lightdm") != 0)
-    return;
-
-  g_autoptr(WebKitUserMessage) empty_msg = webkit_user_message_new("", NULL);
-  GVariant *msg_param = webkit_user_message_get_parameters(message);
-
-  if (!g_variant_is_of_type(msg_param, G_VARIANT_TYPE_ARRAY)) {
-    webkit_user_message_send_reply(message, empty_msg);
-    return;
-  }
-  int parameters_length = g_variant_n_children(msg_param);
-  if (parameters_length == 0 || parameters_length > 2) {
-    webkit_user_message_send_reply(message, empty_msg);
-    return;
-  }
-
-  JSCContext *context = get_global_context();
-  JSCValue *parameters = NULL;
-
-  GVariant *method_var = g_variant_get_child_value(msg_param, 0);
-  GVariant *params_var = g_variant_get_child_value(msg_param, 1);
-
-  const gchar *method = g_variant_to_string(method_var);
-  const gchar *json_params = g_variant_to_string(params_var);
-  parameters = jsc_value_new_from_json(context, json_params);
-  /*printf("Handling: '%s'\n", method);*/
-  /*printf("JSON params: '%s'\n", json_params);*/
-
-  g_variant_unref(method_var);
-  g_variant_unref(params_var);
-  if (method == NULL) {
-    webkit_user_message_send_reply(message, empty_msg);
-    return;
-  }
-
-  GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
-
-  handle_lightdm_property(message, method, g_array);
-  handle_lightdm_method(message, method, g_array);
-
-  g_ptr_array_free(g_array, true);
+  bridge_object_handle_accessor(LightDM_object, web_view, message);
 }
 
 void
 LightDM_destroy()
 {
   g_object_unref(Greeter);
+  g_object_unref(LightDM_object);
   g_string_free(shared_data_directory, true);
-
-  g_object_unref(VirtualMachine);
-  g_object_unref(Context);
 }
 
 /**
@@ -902,7 +759,6 @@ LightDM_destroy()
 void
 LightDM_initialize()
 {
-
   UserList = lightdm_user_list_get_instance();
   Greeter = lightdm_greeter_new();
 
@@ -947,8 +803,6 @@ LightDM_initialize()
     { "show_manual_login_hint", G_CALLBACK(LightDM_show_manual_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN },
     { "show_remote_login_hint", G_CALLBACK(LightDM_show_remote_login_hint_getter_cb), NULL, G_TYPE_BOOLEAN },
     { "users", G_CALLBACK(LightDM_users_getter_cb), NULL, JSC_TYPE_VALUE },
-
-    { NULL, NULL, NULL, 0 },
   };
   struct JSCClassMethod LightDM_methods[] = {
     { "authenticate", G_CALLBACK(LightDM_authenticate_cb), G_TYPE_BOOLEAN },
@@ -962,31 +816,12 @@ LightDM_initialize()
     { "shutdown", G_CALLBACK(LightDM_shutdown_cb), G_TYPE_BOOLEAN },
     { "start_session", G_CALLBACK(LightDM_start_session_cb), G_TYPE_BOOLEAN },
     { "suspend", G_CALLBACK(LightDM_suspend_cb), G_TYPE_BOOLEAN },
-
-    { NULL, NULL, 0 },
   };
 
-  GPtrArray *ldm_properties = g_ptr_array_new_full(G_N_ELEMENTS(LightDM_properties), NULL);
-  for (gsize i = 0; i < G_N_ELEMENTS(LightDM_properties); i++) {
-    struct JSCClassProperty *prop = malloc(sizeof *prop);
-    prop->name = LightDM_properties[i].name;
-    prop->property_type = LightDM_properties[i].property_type;
-    prop->getter = LightDM_properties[i].getter;
-    prop->setter = LightDM_properties[i].setter;
-    g_ptr_array_add(ldm_properties, prop);
-  }
-
-  GPtrArray *ldm_methods = g_ptr_array_new_full(G_N_ELEMENTS(LightDM_methods), NULL);
-  for (gsize i = 0; i < G_N_ELEMENTS(LightDM_methods); i++) {
-    struct JSCClassMethod *method = malloc(sizeof *method);
-    method->name = LightDM_methods[i].name;
-    method->return_type = LightDM_methods[i].return_type;
-    method->callback = LightDM_methods[i].callback;
-    g_ptr_array_add(ldm_methods, method);
-  }
-
-  VirtualMachine = jsc_virtual_machine_new();
-
-  LightDM_object.properties = ldm_properties;
-  LightDM_object.methods = ldm_methods;
+  LightDM_object = bridge_object_new_full(
+      "lightdm",
+      LightDM_properties,
+      G_N_ELEMENTS(LightDM_properties),
+      LightDM_methods,
+      G_N_ELEMENTS(LightDM_methods));
 }

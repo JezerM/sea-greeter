@@ -7,31 +7,18 @@
 #include <jsc/jsc.h>
 #include <webkit2/webkit2.h>
 
+#include "bridge/bridge-object.h"
 #include "bridge/lightdm-objects.h"
 #include "bridge/utils.h"
+
 #include "logger.h"
 #include "settings.h"
-
-static JSCVirtualMachine *VirtualMachine = NULL;
-static JSCContext *Context = NULL;
+#include "utils/utils.h"
 
 static GPtrArray *allowed_dirs = NULL;
 extern GString *shared_data_directory;
 
-static JSCContext *
-get_global_context()
-{
-  if (Context == NULL)
-    Context = jsc_context_new_with_virtual_machine(VirtualMachine);
-  return Context;
-}
-
-typedef struct _BridgeObject {
-  GPtrArray *properties;
-  GPtrArray *methods;
-} BridgeObject;
-
-static BridgeObject ThemeUtils_object;
+static BridgeObject *ThemeUtils_object = NULL;
 
 static void *
 ThemeUtils_dirlist_cb(GPtrArray *arguments)
@@ -128,109 +115,16 @@ ThemeUtils_dirlist_cb(GPtrArray *arguments)
   return value;
 }
 
-static const char *
-g_variant_to_string(GVariant *variant)
-{
-  if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
-    return NULL;
-  const gchar *value = g_variant_get_string(variant, NULL);
-  return value;
-}
-static GPtrArray *
-jsc_array_to_g_ptr_array(JSCValue *jsc_array)
-{
-  if (!jsc_value_is_array(jsc_array)) {
-    return NULL;
-  }
-  GPtrArray *array = g_ptr_array_new();
-  JSCValue *jsc_array_length = jsc_value_object_get_property(jsc_array, "length");
-
-  int length = jsc_value_to_int32(jsc_array_length);
-
-  for (int i = 0; i < length; i++) {
-    g_ptr_array_add(array, jsc_value_object_get_property_at_index(jsc_array, i));
-  }
-
-  return array;
-}
-
-static void
-handle_theme_utils_method(WebKitUserMessage *message, const gchar *method, GPtrArray *parameters)
-{
-  int i = 0;
-  struct JSCClassMethod *current = ThemeUtils_object.methods->pdata[i];
-  while (current->name != NULL) {
-    /*printf("Current: %d - %s\n", i, current->name);*/
-    if (g_strcmp0(current->name, method) == 0) {
-      JSCValue *jsc_value = ((JSCValue * (*) (GPtrArray *) ) current->callback)(parameters);
-      gchar *json_value = jsc_value_to_json(jsc_value, 0);
-      /*printf("JSON value: '%s'\n", json_value);*/
-
-      GVariant *value = g_variant_new_string(json_value);
-      WebKitUserMessage *reply = webkit_user_message_new("reply", value);
-
-      webkit_user_message_send_reply(message, reply);
-      g_free(json_value);
-      break;
-    }
-    i++;
-    current = ThemeUtils_object.methods->pdata[i];
-  }
-}
-
 void
 handle_theme_utils_accessor(WebKitWebView *web_view, WebKitUserMessage *message)
 {
-  (void) web_view;
-  const char *name = webkit_user_message_get_name(message);
-  if (g_strcmp0(name, "theme_utils") != 0)
-    return;
-
-  g_autoptr(WebKitUserMessage) empty_msg = webkit_user_message_new("", NULL);
-  GVariant *msg_param = webkit_user_message_get_parameters(message);
-
-  if (!g_variant_is_of_type(msg_param, G_VARIANT_TYPE_ARRAY)) {
-    webkit_user_message_send_reply(message, empty_msg);
-    return;
-  }
-  int parameters_length = g_variant_n_children(msg_param);
-  if (parameters_length == 0 || parameters_length > 2) {
-    webkit_user_message_send_reply(message, empty_msg);
-    return;
-  }
-
-  JSCContext *context = get_global_context();
-  JSCValue *parameters = NULL;
-
-  GVariant *method_var = g_variant_get_child_value(msg_param, 0);
-  GVariant *params_var = g_variant_get_child_value(msg_param, 1);
-
-  const gchar *method = g_variant_to_string(method_var);
-  const gchar *json_params = g_variant_to_string(params_var);
-  parameters = jsc_value_new_from_json(context, json_params);
-  /*printf("Handling: '%s'\n", method);*/
-  /*printf("JSON params: '%s'\n", json_params);*/
-
-  g_variant_unref(method_var);
-  g_variant_unref(params_var);
-  if (method == NULL) {
-    webkit_user_message_send_reply(message, empty_msg);
-    return;
-  }
-
-  GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
-
-  handle_theme_utils_method(message, method, g_array);
-
-  g_ptr_array_free(g_array, true);
+  bridge_object_handle_accessor(ThemeUtils_object, web_view, message);
 }
 
 void
 ThemeUtils_destroy()
 {
-  g_ptr_array_free(ThemeUtils_object.properties, true);
-  g_ptr_array_free(ThemeUtils_object.methods, true);
-
+  g_object_unref(ThemeUtils_object);
   g_ptr_array_free(allowed_dirs, true);
 }
 
@@ -239,22 +133,10 @@ ThemeUtils_initialize()
 {
   const struct JSCClassMethod ThemeUtils_methods[] = {
     { "dirlist", G_CALLBACK(ThemeUtils_dirlist_cb), G_TYPE_NONE },
-    { NULL, NULL, 0 },
   };
 
-  GPtrArray *ldm_methods = g_ptr_array_new_full(G_N_ELEMENTS(ThemeUtils_methods), NULL);
-  for (gsize i = 0; i < G_N_ELEMENTS(ThemeUtils_methods); i++) {
-    struct JSCClassMethod *method = malloc(sizeof *method);
-    method->name = ThemeUtils_methods[i].name;
-    method->return_type = ThemeUtils_methods[i].return_type;
-    method->callback = ThemeUtils_methods[i].callback;
-    g_ptr_array_add(ldm_methods, method);
-  }
-
-  VirtualMachine = jsc_virtual_machine_new();
-
-  ThemeUtils_object.properties = NULL;
-  ThemeUtils_object.methods = ldm_methods;
+  ThemeUtils_object
+      = bridge_object_new_full("theme_utils", NULL, 0, ThemeUtils_methods, G_N_ELEMENTS(ThemeUtils_methods));
 
   allowed_dirs = g_ptr_array_new();
 
