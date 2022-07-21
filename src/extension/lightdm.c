@@ -641,32 +641,6 @@ LightDM_users_getter_cb(ldm_object *instance)
   return value;
 }
 
-static char *
-g_variant_to_string(GVariant *variant)
-{
-  if (!g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING))
-    return NULL;
-  const gchar *value = g_variant_get_string(variant, NULL);
-  return g_strdup(value);
-}
-static GPtrArray *
-jsc_array_to_g_ptr_array(JSCValue *jsc_array)
-{
-  if (!jsc_value_is_array(jsc_array)) {
-    return NULL;
-  }
-  GPtrArray *array = g_ptr_array_new();
-  JSCValue *jsc_array_length = jsc_value_object_get_property(jsc_array, "length");
-
-  int length = jsc_value_to_int32(jsc_array_length);
-
-  for (int i = 0; i < length; i++) {
-    g_ptr_array_add(array, jsc_value_object_get_property_at_index(jsc_array, i));
-  }
-
-  return array;
-}
-
 static void
 handle_lightdm_signal(WebKitWebPage *web_page, WebKitUserMessage *message)
 {
@@ -685,13 +659,12 @@ handle_lightdm_signal(WebKitWebPage *web_page, WebKitUserMessage *message)
   }
 
   JSCContext *context = LightDM_object->context;
-  char *signal = NULL;
   JSCValue *parameters = NULL;
 
   GVariant *method_var = g_variant_get_child_value(msg_param, 0);
   GVariant *params_var = g_variant_get_child_value(msg_param, 1);
 
-  signal = g_variant_to_string(method_var);
+  const gchar *signal = g_variant_to_string(method_var);
   const gchar *json_params = g_variant_to_string(params_var);
   parameters = jsc_value_new_from_json(context, json_params);
 
@@ -706,7 +679,6 @@ handle_lightdm_signal(WebKitWebPage *web_page, WebKitUserMessage *message)
   GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
   (void) jsc_value_object_invoke_methodv(jsc_signal, "emit", g_array->len, (JSCValue **) g_array->pdata);
 
-  g_free(signal);
   g_ptr_array_free(g_array, true);
 }
 
