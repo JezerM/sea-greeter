@@ -15,18 +15,6 @@ typedef struct {
 
 G_DEFINE_TYPE_WITH_PRIVATE(BrowserWebView, browser_web_view, WEBKIT_TYPE_WEB_VIEW)
 
-static void
-browser_web_view_class_init(BrowserWebViewClass *klass)
-{
-  (void) klass;
-}
-static void
-browser_web_view_init(BrowserWebView *self)
-{
-  BrowserWebViewPrivate *priv = browser_web_view_get_instance_private(self);
-  priv->loaded = false;
-}
-
 /*
  * Callback to be executed when a web-view user message is received
  */
@@ -87,10 +75,12 @@ browser_web_view_set_developer_tools(BrowserWebView *web_view, gboolean value)
   }
 }
 
-BrowserWebView *
-browser_web_view_new()
+static void
+browser_web_view_constructed(GObject *object)
 {
-  BrowserWebView *web_view = g_object_new(BROWSER_WEB_VIEW_TYPE, NULL);
+  G_OBJECT_CLASS(browser_web_view_parent_class)->constructed(object);
+  BrowserWebView *web_view = BROWSER_WEB_VIEW(object);
+
   WebKitSettings *settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(web_view));
   g_object_set(G_OBJECT(settings), "allow-universal-access-from-file-urls", TRUE, NULL);
   g_object_set(G_OBJECT(settings), "allow-file-access-from-file-urls", TRUE, NULL);
@@ -108,6 +98,25 @@ browser_web_view_new()
 
   g_signal_connect(web_view, "user-message-received", G_CALLBACK(browser_web_view_user_message_received_cb), NULL);
   g_signal_connect(web_view, "context-menu", G_CALLBACK(browser_web_view_context_menu_cb), NULL);
+}
 
+static void
+browser_web_view_class_init(BrowserWebViewClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS(klass);
+
+  object_class->constructed = browser_web_view_constructed;
+}
+static void
+browser_web_view_init(BrowserWebView *self)
+{
+  BrowserWebViewPrivate *priv = browser_web_view_get_instance_private(self);
+  priv->loaded = false;
+}
+
+BrowserWebView *
+browser_web_view_new()
+{
+  BrowserWebView *web_view = g_object_new(BROWSER_WEB_VIEW_TYPE, NULL);
   return web_view;
 }
