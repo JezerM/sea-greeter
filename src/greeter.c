@@ -27,13 +27,15 @@ static void
 initialize_web_extensions(WebKitWebContext *context, gpointer user_data)
 {
   (void) user_data;
-  /* Web Extensions get a different ID for each Web Process */
-  static guint32 unique_id = 0;
+
+  gboolean secure_mode = greeter_config->greeter->secure_mode;
+  g_autoptr(GVariant) data = NULL;
+  data = g_variant_new("(b)", secure_mode);
 
   logger_debug("Extension initialized");
 
   webkit_web_context_set_web_extensions_directory(context, WEB_EXTENSIONS_DIR);
-  webkit_web_context_set_web_extensions_initialization_user_data(context, g_variant_new_uint32(unique_id++));
+  webkit_web_context_set_web_extensions_initialization_user_data(context, g_steal_pointer(&data));
 }
 
 /*
