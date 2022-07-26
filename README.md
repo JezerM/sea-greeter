@@ -21,7 +21,7 @@ There are lots of issues, even not documented here, so it is not recommended to 
 
 - [x] Window does not start in fullscreen when no window manager available
 - [ ] No multi-monitor support yet
-- [ ] Secure mode is not implemented.
+- [x] Secure mode is not implemented.
 - [x] No command line arguments support
 - [ ] No brightness and battery features support
 - [x] No `greeter_config.layouts` support
