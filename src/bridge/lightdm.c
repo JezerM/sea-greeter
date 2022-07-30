@@ -632,9 +632,9 @@ authentication_complete_cb(LightDMGreeter *greeter)
 
   GVariant *parameters = jsc_parameters_to_g_variant_array(context, "authentication_complete", NULL);
 
-  WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
-
   for (guint i = 0; i < greeter_browsers->len; i++) {
+    WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
+
     Browser *browser = greeter_browsers->pdata[i];
     webkit_web_view_send_message_to_page(WEBKIT_WEB_VIEW(browser->web_view), message, NULL, NULL, NULL);
   }
@@ -647,9 +647,9 @@ autologin_timer_expired_cb(LightDMGreeter *greeter)
 
   GVariant *parameters = jsc_parameters_to_g_variant_array(context, "autologin_timer_expired", NULL);
 
-  WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
-
   for (guint i = 0; i < greeter_browsers->len; i++) {
+    WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
+
     Browser *browser = greeter_browsers->pdata[i];
     webkit_web_view_send_message_to_page(WEBKIT_WEB_VIEW(browser->web_view), message, NULL, NULL, NULL);
   }
@@ -666,9 +666,9 @@ show_prompt_cb(LightDMGreeter *greeter, const gchar *text, LightDMPromptType typ
 
   GVariant *parameters = jsc_parameters_to_g_variant_array(context, "show_prompt", arr);
 
-  WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
-
   for (guint i = 0; i < greeter_browsers->len; i++) {
+    WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
+
     Browser *browser = greeter_browsers->pdata[i];
     webkit_web_view_send_message_to_page(WEBKIT_WEB_VIEW(browser->web_view), message, NULL, NULL, NULL);
   }
@@ -686,9 +686,9 @@ show_message_cb(LightDMGreeter *greeter, const gchar *text, LightDMMessageType t
 
   GVariant *parameters = jsc_parameters_to_g_variant_array(context, "show_message", arr);
 
-  WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
-
   for (guint i = 0; i < greeter_browsers->len; i++) {
+    WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
+
     Browser *browser = greeter_browsers->pdata[i];
     webkit_web_view_send_message_to_page(WEBKIT_WEB_VIEW(browser->web_view), message, NULL, NULL, NULL);
   }
