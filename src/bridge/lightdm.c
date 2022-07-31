@@ -630,9 +630,8 @@ authentication_complete_cb(LightDMGreeter *greeter)
   (void) greeter;
   JSCContext *context = get_global_context();
 
-  GVariant *parameters = jsc_parameters_to_g_variant_array(context, "authentication_complete", NULL);
-
   for (guint i = 0; i < greeter_browsers->len; i++) {
+    GVariant *parameters = jsc_parameters_to_g_variant_array(context, "authentication_complete", NULL);
     WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
     Browser *browser = greeter_browsers->pdata[i];
@@ -645,9 +644,8 @@ autologin_timer_expired_cb(LightDMGreeter *greeter)
   (void) greeter;
   JSCContext *context = get_global_context();
 
-  GVariant *parameters = jsc_parameters_to_g_variant_array(context, "autologin_timer_expired", NULL);
-
   for (guint i = 0; i < greeter_browsers->len; i++) {
+    GVariant *parameters = jsc_parameters_to_g_variant_array(context, "autologin_timer_expired", NULL);
     WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
     Browser *browser = greeter_browsers->pdata[i];
@@ -664,9 +662,8 @@ show_prompt_cb(LightDMGreeter *greeter, const gchar *text, LightDMPromptType typ
   g_ptr_array_add(arr, jsc_value_new_string(context, text));
   g_ptr_array_add(arr, jsc_value_new_number(context, type));
 
-  GVariant *parameters = jsc_parameters_to_g_variant_array(context, "show_prompt", arr);
-
   for (guint i = 0; i < greeter_browsers->len; i++) {
+    GVariant *parameters = jsc_parameters_to_g_variant_array(context, "show_prompt", arr);
     WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
     Browser *browser = greeter_browsers->pdata[i];
@@ -684,9 +681,8 @@ show_message_cb(LightDMGreeter *greeter, const gchar *text, LightDMMessageType t
   g_ptr_array_add(arr, jsc_value_new_string(context, text));
   g_ptr_array_add(arr, jsc_value_new_number(context, type));
 
-  GVariant *parameters = jsc_parameters_to_g_variant_array(context, "show_message", arr);
-
   for (guint i = 0; i < greeter_browsers->len; i++) {
+    GVariant *parameters = jsc_parameters_to_g_variant_array(context, "show_message", arr);
     WebKitUserMessage *message = webkit_user_message_new("lightdm", parameters);
 
     Browser *browser = greeter_browsers->pdata[i];
