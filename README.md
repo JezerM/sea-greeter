@@ -28,7 +28,7 @@ There are lots of issues, even not documented here, so it is not recommended to 
 - [x] Debug mode is always active (for testing)
 - [x] Memory management might not be correct; possible memory leaks. (I hope this is fixed)
 - [ ] No themes preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
-- [ ] No config preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
+- [x] No config preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
 - [x] The webView freezes when a .face image fails to be loaded.
 
 Besides that, you can login to your session :D
