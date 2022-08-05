@@ -27,7 +27,7 @@ There are lots of issues, even not documented here, so it is not recommended to 
 - [x] No `greeter_config.layouts` support
 - [x] Debug mode is always active (for testing)
 - [x] Memory management might not be correct; possible memory leaks. (I hope this is fixed)
-- [ ] No themes preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
+- [x] No themes preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
 - [x] No config preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
 - [x] The webView freezes when a .face image fails to be loaded.
 
@@ -51,7 +51,7 @@ Besides that, you can login to your session :D
 ## Build and install
 
 ```sh
-git clone https://github.com/JezerM/sea-greeter
+git clone https://github.com/JezerM/sea-greeter --recursive
 cd sea-greeter
 meson build
 ninja -C build
