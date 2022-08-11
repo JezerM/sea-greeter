@@ -1,4 +1,11 @@
 <div align="center">
+  <a>
+    <img
+      alt="Sea Greeter Icon"
+      width="125"
+      src="./data/com.github.jezerm.sea-greeter.svg"
+    />
+  </a>
   <h1><strong>Sea Greeter</strong></h1>
   <p>
     <strong>Another LightDM greeter made with WebKitGTK2</strong>
