@@ -11,6 +11,7 @@ web_extension_sources = [
   'extension/lightdm-signal.c',
   'extension/greeter_config.c',
   'extension/theme_utils.c',
+  'extension/greeter_comm.c',
 
   'bridge/lightdm-objects.c',
   'bridge/utils.c',
