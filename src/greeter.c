@@ -8,6 +8,7 @@
 #include "settings.h"
 #include "theme.h"
 
+#include "bridge/greeter_comm.h"
 #include "bridge/greeter_config.h"
 #include "bridge/lightdm.h"
 #include "bridge/theme_utils.h"
@@ -135,6 +136,7 @@ app_activate_cb(GtkApplication *app, gpointer user_data)
   LightDM_initialize();
   GreeterConfig_initialize();
   ThemeUtils_initialize();
+  GreeterComm_initialize();
 
   g_signal_connect(
       webkit_web_context_get_default(),
@@ -279,6 +281,7 @@ main(int argc, char **argv)
   LightDM_destroy();
   GreeterConfig_destroy();
   ThemeUtils_destroy();
+  GreeterComm_destroy();
 
   free_greeter_config();
   return 0;

@@ -1,5 +1,6 @@
 #include <webkit2/webkit-web-extension.h>
 
+#include "extension/greeter_comm.h"
 #include "extension/greeter_config.h"
 #include "extension/lightdm-signal.h"
 #include "extension/lightdm.h"
@@ -22,6 +23,7 @@ extension_initialize(
   LightDM_initialize(world, web_page, web_frame, extension);
   GreeterConfig_initialize(world, web_page, web_frame, extension);
   ThemeUtils_initialize(world, web_page, web_frame, extension);
+  GreeterComm_initialize(world, web_page, web_frame, extension);
 }
 
 void
