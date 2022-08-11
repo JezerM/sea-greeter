@@ -25,20 +25,17 @@ similar to the last one, as sea-greeter is made with webkit2 instead of chromium
 ## Known issues
 
 There are lots of issues, even not documented here, so it is not recommended to use this greeter yet.
+However, it is functional :D
 
-- [x] Window does not start in fullscreen when no window manager available
-- [ ] No multi-monitor support yet
-- [x] Secure mode is not implemented.
-- [x] No command line arguments support
-- [ ] No brightness and battery features support
-- [x] No `greeter_config.layouts` support
-- [x] Debug mode is always active (for testing)
+- [ ] Multi-monitor support.
+    - [x] Add `greeter_comm` JavaScript API
+    - [ ] Parse `index.yml` to load `secondary.html`
+- [ ] Brightness feature support
+- [ ] Battery feature support
+- [ ] Detect theme errors prompt
 - [x] Memory management might not be correct; possible memory leaks. (I hope this is fixed)
-- [x] No themes preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
-- [x] No config preinstalled, you may need to install [web-greeter][web-greeter] or [nody-greeter][nody-greeter]
-- [x] The webView freezes when a .face image fails to be loaded.
-
-Besides that, you can login to your session :D
+- [x] Add themes
+- [x] Add config
 
 ## Dependencies
 
