@@ -23,9 +23,9 @@ GreeterConfig_branding_getter_cb()
   JSCContext *context = get_global_context();
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
 
-  const gchar *background_images_dir = greeter_config->branding->background_images_dir->str;
-  const gchar *logo_image = greeter_config->branding->logo_image->str;
-  const gchar *user_image = greeter_config->branding->user_image->str;
+  const gchar *background_images_dir = greeter_config->branding->background_images_dir;
+  const gchar *logo_image = greeter_config->branding->logo_image;
+  const gchar *user_image = greeter_config->branding->user_image;
 
   jsc_value_object_set_property(value, "background_images_dir", jsc_value_new_string(context, background_images_dir));
   jsc_value_object_set_property(value, "logo_image", jsc_value_new_string(context, logo_image));
@@ -43,9 +43,9 @@ GreeterConfig_greeter_getter_cb()
   const gboolean detect_theme_errors = greeter_config->greeter->detect_theme_errors;
   const gint screensaver_timeout = greeter_config->greeter->screensaver_timeout;
   const gboolean secure_mode = greeter_config->greeter->secure_mode;
-  const gchar *theme = greeter_config->greeter->theme->str;
-  const gchar *icon_theme = greeter_config->greeter->icon_theme->str;
-  const gchar *time_language = greeter_config->greeter->time_language->str;
+  const gchar *theme = greeter_config->greeter->theme;
+  const gchar *icon_theme = greeter_config->greeter->icon_theme;
+  const gchar *time_language = greeter_config->greeter->time_language;
 
   jsc_value_object_set_property(value, "debug_mode", jsc_value_new_boolean(context, debug_mode));
   jsc_value_object_set_property(value, "detect_theme_errors", jsc_value_new_boolean(context, detect_theme_errors));
@@ -87,14 +87,14 @@ GreeterConfig_layouts_getter_cb()
   JSCContext *context = get_global_context();
 
   GList *layouts = lightdm_get_layouts();
-  GList *config_layouts = greeter_config->layouts;
+  GPtrArray *config_layouts = greeter_config->layouts;
   GPtrArray *final = g_ptr_array_new();
 
   GList *ldm_layout = layouts;
   while (ldm_layout != NULL) {
-    GList *conf_layout = config_layouts;
-    while (conf_layout != NULL) {
-      GString *str = g_string_new(conf_layout->data);
+    for (uint i = 0; i < config_layouts->len; i++) {
+      char *conf_layout = config_layouts->pdata[i];
+      GString *str = g_string_new(conf_layout);
       g_string_replace(str, " ", "\t", 0);
 
       LightDMLayout *lay = ldm_layout->data;
@@ -104,12 +104,10 @@ GreeterConfig_layouts_getter_cb()
           g_ptr_array_add(final, val);
       }
       g_string_free(str, true);
-
-      conf_layout = conf_layout->next;
     }
-
     ldm_layout = ldm_layout->next;
   }
+
   JSCValue *value = jsc_value_new_array_from_garray(context, final);
   g_ptr_array_free(final, true);
   return value;

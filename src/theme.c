@@ -11,8 +11,8 @@ extern GreeterConfig *greeter_config;
 void
 load_theme(WebKitWebView *web_view)
 {
-  char *theme = greeter_config->greeter->theme->str;
-  char *dir = greeter_config->app->theme_dir->str;
+  char *theme = greeter_config->greeter->theme;
+  char *dir = greeter_config->app->theme_dir;
   char *path_to_theme = g_strconcat(dir, theme, "/index.html", NULL);
   const char *def_theme = "gruvbox";
 
@@ -34,12 +34,12 @@ load_theme(WebKitWebView *web_view)
     path_to_theme = g_strconcat(dir, def_theme, "/index.html", NULL);
   }
 
-  g_string_free(greeter_config->greeter->theme, true);
-  greeter_config->greeter->theme = g_string_new(path_to_theme);
+  g_free(greeter_config->greeter->theme);
+  greeter_config->greeter->theme = g_strdup(path_to_theme);
 
   g_free(path_to_theme);
 
-  FILE *file = fopen(greeter_config->greeter->theme->str, "r");
+  FILE *file = fopen(greeter_config->greeter->theme, "r");
   if (!file) {
     logger_error("Theme couldn't be loaded");
     webkit_web_view_load_plain_text(web_view, "Theme couldn't be loaded.");
@@ -52,7 +52,7 @@ load_theme(WebKitWebView *web_view)
   }
   fclose(file);
 
-  char *uri = g_strconcat("file://", greeter_config->greeter->theme->str, NULL);
+  char *uri = g_strconcat("file://", greeter_config->greeter->theme, NULL);
   webkit_web_view_load_html(web_view, html->str, uri);
   g_free(uri);
   g_string_free(html, true);

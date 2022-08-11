@@ -219,7 +219,7 @@ g_application_parse_args(gint *argc, gchar ***argv)
     exit(0);
   }
   if (theme) {
-    greeter_config->greeter->theme = g_string_new(theme);
+    greeter_config->greeter->theme = g_strdup(theme);
     g_free(theme);
   }
 

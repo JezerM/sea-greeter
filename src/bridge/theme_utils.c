@@ -141,11 +141,11 @@ ThemeUtils_initialize()
   allowed_dirs = g_ptr_array_new();
 
   char resolved_path[PATH_MAX];
-  realpath(greeter_config->greeter->theme->str, resolved_path);
+  realpath(greeter_config->greeter->theme, resolved_path);
   char *theme_dir = g_path_get_dirname(resolved_path);
 
-  g_ptr_array_add(allowed_dirs, greeter_config->app->theme_dir->str);
-  g_ptr_array_add(allowed_dirs, greeter_config->branding->background_images_dir->str);
+  g_ptr_array_add(allowed_dirs, greeter_config->app->theme_dir);
+  g_ptr_array_add(allowed_dirs, greeter_config->branding->background_images_dir);
   g_ptr_array_add(allowed_dirs, shared_data_directory);
   g_ptr_array_add(allowed_dirs, theme_dir);
   g_ptr_array_add(allowed_dirs, g_strdup(g_get_tmp_dir()));
