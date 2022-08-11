@@ -38,6 +38,12 @@ install_subdir(
   strip_directory: false
 )
 
+icon = 'com.github.jezerm.sea-greeter.svg'
+install_data(
+  icon,
+  install_dir: '/usr/share/icons/hicolor/scalable/apps',
+)
+
 install_data('web-greeter.yml', install_dir: '/etc/lightdm')
 install_data('sea-greeter.desktop', install_dir: '/usr/share/applications/')
 install_data('sea-xgreeter.desktop', install_dir: '/usr/share/xgreeters/', rename: 'sea-greeter.desktop')
