@@ -125,7 +125,10 @@ bridge_object_handle_property(
       }
 
       JSCValue *jsc_value = ((JSCValue * (*) (void) ) current->getter)();
-      gchar *json_value = jsc_value_to_json(jsc_value, 0);
+      gchar *json_value = g_strdup("undefined");
+      if (JSC_IS_VALUE(jsc_value)) {
+        json_value = jsc_value_to_json(jsc_value, 0);
+      }
       /*printf("JSON value: '%s'\n", json_value);*/
 
       GVariant *value = g_variant_new_string(json_value);
@@ -149,7 +152,10 @@ bridge_object_handle_method(BridgeObject *self, WebKitUserMessage *message, cons
 
     if (g_strcmp0(current->name, method) == 0) {
       JSCValue *jsc_value = ((JSCValue * (*) (GPtrArray *) ) current->callback)(parameters);
-      gchar *json_value = jsc_value_to_json(jsc_value, 0);
+      gchar *json_value = g_strdup("undefined");
+      if (JSC_IS_VALUE(jsc_value)) {
+        json_value = jsc_value_to_json(jsc_value, 0);
+      }
       /*printf("JSON value: '%s'\n", json_value);*/
 
       GVariant *value = g_variant_new_string(json_value);
