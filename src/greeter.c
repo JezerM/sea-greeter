@@ -182,6 +182,7 @@ g_application_parse_args(gint *argc, gchar ***argv)
   GOptionContext *context = g_option_context_new(NULL);
 
   gboolean version = false;
+  gboolean api_version = false;
 
   gchar *mode_str = NULL;
   gboolean debug = false;
@@ -192,6 +193,7 @@ g_application_parse_args(gint *argc, gchar ***argv)
 
   GOptionEntry entries[] = {
     { "version", 'v', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &version, "Version", NULL },
+    { "api-version", 0, G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &api_version, "API version", NULL },
 
     { "mode", 0, G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING, &mode_str, "Mode", NULL },
     { "debug", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &debug, "Debug mode", NULL },
@@ -212,6 +214,10 @@ g_application_parse_args(gint *argc, gchar ***argv)
 
   if (version) {
     printf("%s\n", VERSION);
+    exit(0);
+  }
+  if (api_version) {
+    printf("%s\n", API_VERSION);
     exit(0);
   }
   if (list) {
