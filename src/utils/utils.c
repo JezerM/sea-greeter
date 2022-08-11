@@ -31,6 +31,12 @@ jsc_array_to_g_ptr_array(JSCValue *jsc_array)
   return array;
 }
 
+/**
+ * Convert JSCValue parameters to GVariant
+ * @param context The JSCContext
+ * @param name Custom string to send, useful to execute a "name" method with given parameters
+ * @param parameters A GPtrArray of JSCValue parameters
+ */
 GVariant *
 jsc_parameters_to_g_variant_array(JSCContext *context, const gchar *name, GPtrArray *parameters)
 {
