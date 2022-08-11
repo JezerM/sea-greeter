@@ -13,9 +13,9 @@ init_greeter_config_branding()
 {
   GreeterConfigBranding *branding = greeter_config->branding;
   branding = malloc(sizeof *branding);
-  branding->background_images_dir = g_string_new(NULL);
-  branding->logo_image = g_string_new(NULL);
-  branding->user_image = g_string_new(NULL);
+  branding->background_images_dir = NULL;
+  branding->logo_image = NULL;
+  branding->user_image = NULL;
   greeter_config->branding = branding;
 }
 static void
@@ -27,9 +27,9 @@ init_greeter_config_greeter()
   greeter->detect_theme_errors = true;
   greeter->screensaver_timeout = 300;
   greeter->secure_mode = true;
-  greeter->theme = g_string_new("gruvbox");
-  greeter->icon_theme = g_string_new(NULL);
-  greeter->time_language = g_string_new(NULL);
+  greeter->theme = g_strdup("gruvbox");
+  greeter->icon_theme = NULL;
+  greeter->time_language = NULL;
   greeter_config->greeter = greeter;
 }
 static void
@@ -51,7 +51,7 @@ init_greeter_config_app()
   app = malloc(sizeof *app);
   app->debug_mode = false;
   app->fullscreen = true;
-  app->theme_dir = g_string_new("/usr/share/web-greeter/themes/");
+  app->theme_dir = g_strdup("/usr/share/web-greeter/themes/");
   greeter_config->app = app;
 }
 
@@ -59,16 +59,15 @@ void
 print_greeter_config()
 {
   GString *layouts = g_string_new("");
-  GList *actual = greeter_config->layouts;
-  if (actual == NULL)
-    g_string_append(layouts, "\n");
-  else {
-    while (actual != NULL) {
-      if (actual->data != NULL)
-        g_string_append_printf(layouts, "  \"%s\"\n", (char *) actual->data);
-      actual = actual->next;
-    }
+
+  for (uint i = 0; i < greeter_config->layouts->len; i++) {
+    char *layout = greeter_config->layouts->pdata[i];
+    g_string_append_printf(layouts, "  \"%s\"\n", layout);
   }
+  if (greeter_config->layouts->len == 0) {
+    g_string_append(layouts, "\n");
+  }
+
   printf(
       "branding:\n"
       "  background_images_dir: \"%s\"\n"
@@ -89,15 +88,15 @@ print_greeter_config()
       "    enabled: %d\n"
       "    value: %d\n"
       "    steps: %d\n",
-      greeter_config->branding->background_images_dir->str,
-      greeter_config->branding->logo_image->str,
-      greeter_config->branding->user_image->str,
+      greeter_config->branding->background_images_dir,
+      greeter_config->branding->logo_image,
+      greeter_config->branding->user_image,
       greeter_config->greeter->debug_mode,
       greeter_config->greeter->detect_theme_errors,
       greeter_config->greeter->screensaver_timeout,
-      greeter_config->greeter->theme->str,
-      greeter_config->greeter->icon_theme->str,
-      greeter_config->greeter->time_language->str,
+      greeter_config->greeter->theme,
+      greeter_config->greeter->icon_theme,
+      greeter_config->greeter->time_language,
       layouts->str,
       greeter_config->features->battery,
       greeter_config->features->backlight->enabled,
@@ -114,7 +113,7 @@ init_greeter_config()
   init_greeter_config_greeter();
   init_greeter_config_features();
   init_greeter_config_app();
-  greeter_config->layouts = g_list_alloc();
+  greeter_config->layouts = g_ptr_array_new();
 }
 
 void
@@ -126,9 +125,9 @@ free_greeter_config_branding()
     return;
 
   GreeterConfigBranding *branding = greeter_config->branding;
-  g_string_free(branding->background_images_dir, true);
-  g_string_free(branding->logo_image, true);
-  g_string_free(branding->user_image, true);
+  g_free(branding->background_images_dir);
+  g_free(branding->logo_image);
+  g_free(branding->user_image);
   g_free(branding);
 }
 void
@@ -140,9 +139,9 @@ free_greeter_config_greeter()
     return;
 
   GreeterConfigGreeter *greeter = greeter_config->greeter;
-  g_string_free(greeter->theme, true);
-  g_string_free(greeter->icon_theme, true);
-  g_string_free(greeter->time_language, true);
+  g_free(greeter->theme);
+  g_free(greeter->icon_theme);
+  g_free(greeter->time_language);
   g_free(greeter);
 }
 void
@@ -166,7 +165,7 @@ free_greeter_config_app()
     return;
 
   GreeterConfigApp *app = greeter_config->app;
-  g_string_free(app->theme_dir, true);
+  g_free(app->theme_dir);
   g_free(app);
 }
 
@@ -177,7 +176,7 @@ free_greeter_config()
   free_greeter_config_greeter();
   free_greeter_config_features();
   free_greeter_config_app();
-  g_list_free(greeter_config->layouts);
+  g_ptr_array_free(greeter_config->layouts, true);
   g_free(greeter_config);
   greeter_config = NULL;
 }
@@ -204,14 +203,14 @@ load_branding(GNode *node)
   char *key = node->data;
   char *value = node->children->data;
   if (strcmp(key, "background_images_dir") == 0) {
-    g_string_free(greeter_config->branding->background_images_dir, true);
-    greeter_config->branding->background_images_dir = g_string_new(value);
+    g_free(greeter_config->branding->background_images_dir);
+    greeter_config->branding->background_images_dir = g_strdup(value);
   } else if (strcmp(key, "logo_image") == 0) {
-    g_string_free(greeter_config->branding->logo_image, true);
-    greeter_config->branding->logo_image = g_string_new(value);
+    g_free(greeter_config->branding->logo_image);
+    greeter_config->branding->logo_image = g_strdup(value);
   } else if (strcmp(key, "user_image") == 0) {
-    g_string_free(greeter_config->branding->user_image, true);
-    greeter_config->branding->user_image = g_string_new(value);
+    g_free(greeter_config->branding->user_image);
+    greeter_config->branding->user_image = g_strdup(value);
   }
   /*printf("  %s: %s\n", key, (char*) value);*/
   load_branding(node->next);
@@ -232,14 +231,14 @@ load_greeter(GNode *node)
   } else if (strcmp(key, "secure_mode") == 0) {
     greeter_config->greeter->secure_mode = yaml_get_bool(value);
   } else if (strcmp(key, "theme") == 0) {
-    g_string_free(greeter_config->greeter->theme, true);
-    greeter_config->greeter->theme = g_string_new(value);
+    g_free(greeter_config->greeter->theme);
+    greeter_config->greeter->theme = g_strdup(value);
   } else if (strcmp(key, "icon_theme") == 0) {
-    g_string_free(greeter_config->greeter->icon_theme, true);
-    greeter_config->greeter->icon_theme = g_string_new(value);
+    g_free(greeter_config->greeter->icon_theme);
+    greeter_config->greeter->icon_theme = g_strdup(value);
   } else if (strcmp(key, "time_language") == 0) {
-    g_string_free(greeter_config->greeter->time_language, true);
-    greeter_config->greeter->time_language = g_string_new(value);
+    g_free(greeter_config->greeter->time_language);
+    greeter_config->greeter->time_language = g_strdup(value);
   }
   /*printf("  %s: %s\n", key, (char*) value);*/
   load_greeter(node->next);
@@ -250,7 +249,7 @@ load_layouts(GNode *node)
   if (node == NULL)
     return;
   char *value = node->data;
-  greeter_config->layouts = g_list_append(greeter_config->layouts, value);
+  g_ptr_array_add(greeter_config->layouts, value);
   /*printf("  %s\n", (char*) value);*/
   load_layouts(node->next);
 }

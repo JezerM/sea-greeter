@@ -8,15 +8,15 @@ typedef struct greeter_config_branding_st {
   /**
    * Path to directory that contains background images for use by themes
    */
-  GString *background_images_dir;
+  char *background_images_dir;
   /**
    * Path to logo image for use by greeter themes
    */
-  GString *logo_image;
+  char *logo_image;
   /**
    * Default user image/avatar. This is used by themes when user has no .face image
    */
-  GString *user_image;
+  char *user_image;
 } GreeterConfigBranding;
 
 typedef struct greeter_config_greeter_st {
@@ -39,15 +39,15 @@ typedef struct greeter_config_greeter_st {
   /**
    * Greeter theme to use
    */
-  GString *theme;
+  char *theme;
   /**
    * Icon/cursor theme to use, located in /usr/share/icons/
    */
-  GString *icon_theme;
+  char *icon_theme;
   /**
    * Language to use when displaying the date or time
    */
-  GString *time_language;
+  char *time_language;
 } GreeterConfigGreeter;
 
 typedef struct greeter_config_features_backlight_st {
@@ -80,7 +80,7 @@ typedef struct greeter_config_app_st {
   bool fullscreen;
   bool frame;
   bool debug_mode;
-  GString *theme_dir;
+  char *theme_dir;
 } GreeterConfigApp;
 
 /**
@@ -89,7 +89,7 @@ typedef struct greeter_config_app_st {
 typedef struct greeter_config_st {
   GreeterConfigBranding *branding;
   GreeterConfigGreeter *greeter;
-  GList *layouts;
+  GPtrArray *layouts;
   GreeterConfigFeatures *features;
   GreeterConfigApp *app;
 } GreeterConfig;
