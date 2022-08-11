@@ -641,21 +641,21 @@ LightDM_users_getter_cb(ldm_object *instance)
   return value;
 }
 
-static void
+static gboolean
 handle_lightdm_signal(WebKitWebPage *web_page, WebKitUserMessage *message)
 {
   (void) web_page;
   const char *name = webkit_user_message_get_name(message);
   if (g_strcmp0(name, "lightdm") != 0)
-    return;
+    return false;
 
   GVariant *msg_param = webkit_user_message_get_parameters(message);
   if (!g_variant_is_of_type(msg_param, G_VARIANT_TYPE_ARRAY)) {
-    return;
+    return false;
   }
   int parameters_length = g_variant_n_children(msg_param);
   if (parameters_length == 0 || parameters_length > 2) {
-    return;
+    return false;
   }
 
   JSCContext *context = LightDM_object->context;
@@ -669,27 +669,28 @@ handle_lightdm_signal(WebKitWebPage *web_page, WebKitUserMessage *message)
   parameters = jsc_value_new_from_json(context, json_params);
 
   if (signal == NULL) {
-    return;
+    return false;
   }
 
   JSCValue *jsc_signal = jsc_value_object_get_property(LightDM_object->value, signal);
   if (jsc_signal == NULL) {
-    return;
+    return false;
   }
   GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
   (void) jsc_value_object_invoke_methodv(jsc_signal, "emit", g_array->len, (JSCValue **) g_array->pdata);
 
   g_ptr_array_free(g_array, true);
+  return true;
 }
 
-static void
+static gboolean
 web_page_user_message_received(WebKitWebPage *web_page, WebKitUserMessage *message, gpointer user_data)
 {
   (void) user_data;
   /*const char *name = webkit_user_message_get_name(message);*/
   /*printf("Got web_view message: '%s'\n", name);*/
 
-  handle_lightdm_signal(web_page, message);
+  return handle_lightdm_signal(web_page, message);
 }
 
 static JSCValue *
