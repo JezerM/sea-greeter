@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <webkit2/webkit2.h>
+#include <yaml.h>
 
 #include "logger.h"
 #include "settings.h"
@@ -122,6 +123,83 @@ load_secondary_theme_path()
   return path_to_theme;
 }
 
+enum storage_flags { VAR, VAL, SEQ };
+
+static void
+process_layer(yaml_parser_t *parser, GNode *data)
+{
+  GNode *last_leaf = data;
+  yaml_event_t event;
+  int storage = VAR;
+
+  while (1) {
+    yaml_parser_parse(parser, &event);
+
+    if (event.type == YAML_SCALAR_EVENT) {
+      if (storage)
+        g_node_append_data(last_leaf, g_strdup((gchar *) event.data.scalar.value));
+      else
+        last_leaf = g_node_append(data, g_node_new(g_strdup((gchar *) event.data.scalar.value)));
+      storage ^= VAL;
+    } else if (event.type == YAML_SEQUENCE_START_EVENT)
+      storage = SEQ;
+    else if (event.type == YAML_SEQUENCE_END_EVENT)
+      storage = VAR;
+    else if (event.type == YAML_MAPPING_START_EVENT) {
+      process_layer(parser, last_leaf);
+      storage ^= VAL;
+    } else if (event.type == YAML_MAPPING_END_EVENT || event.type == YAML_STREAM_END_EVENT)
+      break;
+
+    yaml_event_delete(&event);
+  }
+}
+
+void
+load_theme_config()
+{
+  if (!theme_dir)
+    theme_dir = load_theme_dir();
+
+  char *path_to_theme_config = g_build_path("/", theme_dir, "index.yml", NULL);
+  FILE *file = fopen(path_to_theme_config, "rb");
+  yaml_parser_t parser;
+
+  if (!yaml_parser_initialize(&parser) || file == NULL) {
+    logger_warn("Theme config was not loaded:\n\t%s", strerror(errno));
+  }
+
+  yaml_parser_set_input_file(&parser, file);
+
+  GNode *cfg = g_node_new(path_to_theme_config);
+  process_layer(&parser, cfg);
+
+  yaml_parser_delete(&parser);
+  fclose(file);
+
+  GNode *node = cfg->children;
+
+  do {
+    /*printf("'%s'\n", (char *) node->data);*/
+    if (g_strcmp0(node->data, "primary_html") == 0) {
+      GNode *children = node->children;
+      if (children != NULL) {
+        char *value = children->data;
+        greeter_config->theme->primary_html = g_strdup(value);
+      }
+    } else if (g_strcmp0(node->data, "secondary_html") == 0) {
+      GNode *children = node->children;
+      if (children != NULL) {
+        char *value = children->data;
+        greeter_config->theme->secondary_html = g_strdup(value);
+      }
+    }
+    node = node->next;
+  } while (node != NULL);
+  g_node_destroy(cfg);
+  g_free(path_to_theme_config);
+}
+
 void
 load_theme(Browser *browser)
 {
@@ -133,7 +211,7 @@ load_theme(Browser *browser)
 
   char *theme = NULL;
 
-  if (gdk_monitor_is_primary(browser->monitor)) {
+  if (browser->is_primary) {
     theme = g_strdup(primary_html);
   } else {
     theme = g_strdup(secondary_html);

@@ -3,6 +3,8 @@
 
 #include "browser.h"
 
+void
+load_theme_config();
 void load_theme(Browser *browser);
 
 #endif

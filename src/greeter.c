@@ -265,6 +265,8 @@ g_application_parse_args(gint *argc, gchar ***argv)
   } else if (normal) {
     greeter_config->greeter->debug_mode = false;
   }
+
+  load_theme_config();
 }
 
 int
