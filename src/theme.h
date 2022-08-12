@@ -1,6 +1,8 @@
 #ifndef THEME_H
 #define THEME_H 1
 
-void load_theme();
+#include "browser.h"
+
+void load_theme(Browser *browser);
 
 #endif

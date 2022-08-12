@@ -158,7 +158,7 @@ app_activate_cb(GtkApplication *app, gpointer user_data)
     Browser *browser = browser_new_debug(app, monitor, debug_mode);
     g_ptr_array_add(greeter_browsers, browser);
 
-    load_theme(browser->web_view);
+    load_theme(browser);
   }
 
   initialize_actions(app);
