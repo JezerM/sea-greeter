@@ -27,9 +27,9 @@ similar to the last one, as sea-greeter is made with webkit2 instead of chromium
 There are lots of issues, even not documented here, so it is not recommended to use this greeter yet.
 However, it is functional :D
 
-- [ ] Multi-monitor support.
+- [x] Multi-monitor support.
     - [x] Add `greeter_comm` JavaScript API
-    - [ ] Parse `index.yml` to load `secondary.html`
+    - [x] Parse `index.yml` to load `secondary.html`
 - [ ] Brightness feature support
 - [ ] Battery feature support
 - [ ] Detect theme errors prompt
