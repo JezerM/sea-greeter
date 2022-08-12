@@ -54,6 +54,15 @@ init_greeter_config_app()
   app->theme_dir = g_strdup("/usr/share/web-greeter/themes/");
   greeter_config->app = app;
 }
+static void
+init_greeter_config_theme()
+{
+  GreeterConfigTheme *theme = greeter_config->theme;
+  theme = malloc(sizeof *theme);
+  theme->primary_html = g_strdup("index.html");
+  theme->secondary_html = NULL;
+  greeter_config->theme = theme;
+}
 
 void
 print_greeter_config()
@@ -113,6 +122,7 @@ init_greeter_config()
   init_greeter_config_greeter();
   init_greeter_config_features();
   init_greeter_config_app();
+  init_greeter_config_theme();
   greeter_config->layouts = g_ptr_array_new();
 }
 
@@ -168,6 +178,19 @@ free_greeter_config_app()
   g_free(app->theme_dir);
   g_free(app);
 }
+void
+free_greeter_config_theme()
+{
+  if (greeter_config == NULL)
+    return;
+  else if (greeter_config->theme == NULL)
+    return;
+
+  GreeterConfigTheme *theme = greeter_config->theme;
+  g_free(theme->primary_html);
+  g_free(theme->secondary_html);
+  g_free(theme);
+}
 
 void
 free_greeter_config()
@@ -176,6 +199,7 @@ free_greeter_config()
   free_greeter_config_greeter();
   free_greeter_config_features();
   free_greeter_config_app();
+  free_greeter_config_theme();
   g_ptr_array_free(greeter_config->layouts, true);
   g_free(greeter_config);
   greeter_config = NULL;

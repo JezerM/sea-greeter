@@ -83,6 +83,11 @@ typedef struct greeter_config_app_st {
   char *theme_dir;
 } GreeterConfigApp;
 
+typedef struct greeter_config_theme_st {
+  char *primary_html;
+  char *secondary_html;
+} GreeterConfigTheme;
+
 /**
  * Greeter configuration
  */
@@ -92,6 +97,7 @@ typedef struct greeter_config_st {
   GPtrArray *layouts;
   GreeterConfigFeatures *features;
   GreeterConfigApp *app;
+  GreeterConfigTheme *theme;
 } GreeterConfig;
 
 extern GreeterConfig *greeter_config;
