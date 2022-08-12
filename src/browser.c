@@ -16,6 +16,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(Browser, browser, GTK_TYPE_APPLICATION_WINDOW)
 typedef enum {
   PROP_MONITOR = 1,
   PROP_DEBUG_MODE,
+  PROP_IS_PRIMARY,
   N_PROPERTIES,
 } BrowserProperty;
 
@@ -132,6 +133,10 @@ browser_set_property(GObject *object, guint property_id, const GValue *value, GP
       break;
     case PROP_DEBUG_MODE:
       self->debug_mode = g_value_get_boolean(value);
+      break;
+    case PROP_IS_PRIMARY:
+      self->is_primary = g_value_get_boolean(value);
+      break;
     default:
       break;
   }
@@ -147,6 +152,10 @@ browser_get_property(GObject *object, guint property_id, GValue *value, GParamSp
       break;
     case PROP_DEBUG_MODE:
       g_value_set_boolean(value, self->debug_mode);
+      break;
+    case PROP_IS_PRIMARY:
+      g_value_set_boolean(value, self->is_primary);
+      break;
     default:
       break;
   }
@@ -181,6 +190,13 @@ browser_class_init(BrowserClass *klass)
       false,
       G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
 
+  browser_properties[PROP_IS_PRIMARY] = g_param_spec_boolean(
+      "is_primary",
+      "IsPrimary",
+      "Whether the browser is in a primary monitor or not",
+      true,
+      G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
+
   g_object_class_install_properties(object_class, N_PROPERTIES, browser_properties);
 }
 
@@ -190,6 +206,7 @@ browser_init(Browser *self)
   BrowserPrivate *priv = browser_get_instance_private(self);
 
   self->web_view = browser_web_view_new();
+  self->is_primary = true;
 
   priv->menu_bar = NULL;
   priv->main_box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
@@ -210,8 +227,18 @@ browser_new(GtkApplication *app, GdkMonitor *monitor)
   return browser;
 }
 Browser *
-browser_new_debug(GtkApplication *app, GdkMonitor *monitor, gboolean debug_mode)
+browser_new_full(GtkApplication *app, GdkMonitor *monitor, gboolean debug_mode, gboolean is_primary)
 {
-  Browser *browser = g_object_new(BROWSER_TYPE, "application", app, "monitor", monitor, "debug_mode", debug_mode, NULL);
+  Browser *browser = g_object_new(
+      BROWSER_TYPE,
+      "application",
+      app,
+      "monitor",
+      monitor,
+      "debug_mode",
+      debug_mode,
+      "is_primary",
+      is_primary,
+      NULL);
   return browser;
 }
