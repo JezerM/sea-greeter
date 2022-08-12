@@ -224,6 +224,10 @@ g_application_parse_args(gint *argc, gchar ***argv)
     printf("List\n"); // TODO
     exit(0);
   }
+
+  load_configuration();
+  /*print_greeter_config();*/
+
   if (theme) {
     greeter_config->greeter->theme = g_strdup(theme);
     g_free(theme);
@@ -267,9 +271,6 @@ main(int argc, char **argv)
   GtkApplication *app = gtk_application_new("com.github.jezerm.sea-greeter", G_APPLICATION_FLAGS_NONE);
 
   setlocale(LC_ALL, "");
-
-  load_configuration();
-  /*print_greeter_config();*/
 
   WebKitApplicationInfo *web_info = webkit_application_info_new();
   webkit_application_info_set_name(web_info, "com.github.jezerm.sea-greeter");
