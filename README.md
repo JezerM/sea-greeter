@@ -51,6 +51,7 @@ However, it is functional :D
 - Meson
 - Ninja
 - gcc
+- tsc (TypeScript compiler)
 
 ## Build and install
 
