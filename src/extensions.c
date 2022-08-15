@@ -44,6 +44,21 @@ web_page_send_request_cb(
   return deny_request;
 }
 
+#define WEB_PAGE_LOG() fprintf(stderr, "%s [ %s ] %s %d: %s\n", timestamp, type, source_id, line, message);
+
+static void
+web_page_send_console_message_to_view(
+    WebKitWebPage *web_page,
+    const char *type,
+    const char *message,
+    const char *source_id,
+    guint line)
+{
+  GVariant *params = g_variant_new("(sssu)", type, message, source_id, line);
+  WebKitUserMessage *user_message = webkit_user_message_new("console", params);
+  webkit_web_page_send_message_to_view(web_page, user_message, NULL, NULL, NULL);
+}
+
 static void
 web_page_console_message_sent(WebKitWebPage *web_page, WebKitConsoleMessage *console_message, gpointer user_data)
 {
@@ -58,24 +73,18 @@ web_page_console_message_sent(WebKitWebPage *web_page, WebKitConsoleMessage *con
   guint line = webkit_console_message_get_line(console_message);
 
   switch (webkit_console_message_get_level(console_message)) {
-    case WEBKIT_CONSOLE_MESSAGE_LEVEL_DEBUG:
-      type = "DEBUG";
-      break;
     case WEBKIT_CONSOLE_MESSAGE_LEVEL_ERROR:
       type = "ERROR";
-      break;
-    case WEBKIT_CONSOLE_MESSAGE_LEVEL_INFO:
-      type = "INFO";
+      WEB_PAGE_LOG();
+      web_page_send_console_message_to_view(web_page, type, message, source_id, line);
       break;
     case WEBKIT_CONSOLE_MESSAGE_LEVEL_WARNING:
       type = "WARNING";
+      WEB_PAGE_LOG();
       break;
-    case WEBKIT_CONSOLE_MESSAGE_LEVEL_LOG:
-      type = "LOG";
-      break;
+    default:
+      return;
   }
-
-  fprintf(stderr, "%s [ %s ] %s %d: %s\n", timestamp, type, source_id, line, message);
 }
 
 static void
