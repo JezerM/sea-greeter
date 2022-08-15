@@ -6,6 +6,9 @@
 #include "bridge/theme_utils.h"
 #include "browser-web-view.h"
 #include "logger.h"
+#include "settings.h"
+
+extern GreeterConfig *greeter_config;
 
 struct _BrowserWebView {
   WebKitWebView parent_instance;
@@ -15,6 +18,68 @@ typedef struct {
 } BrowserWebViewPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE(BrowserWebView, browser_web_view, WEBKIT_TYPE_WEB_VIEW)
+
+typedef enum {
+  ERROR_PROMPT_CANCEL,
+  ERROR_PROMPT_DEFAULT_THEME,
+  ERROR_PROMPT_RELOAD_THEME,
+} ErrorPromptResponseType;
+
+static void
+show_console_error_prompt(BrowserWebView *web_view, WebKitUserMessage *user_message)
+{
+  GVariant *params = webkit_user_message_get_parameters(user_message);
+
+  char *type = NULL;
+  char *message = NULL;
+  char *source_id = NULL;
+  guint line = 0;
+
+  g_variant_get(params, "(sssu)", &type, &message, &source_id, &line);
+
+  GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(web_view));
+
+  GtkDialog *dialog = GTK_DIALOG(gtk_dialog_new_with_buttons(
+      "An error ocurred",
+      GTK_WINDOW(window),
+      GTK_DIALOG_MODAL,
+      "_Cancel",
+      ERROR_PROMPT_CANCEL,
+      "_Use default theme",
+      ERROR_PROMPT_DEFAULT_THEME,
+      "_Reload theme",
+      ERROR_PROMPT_RELOAD_THEME,
+      NULL));
+
+  gtk_dialog_set_default_response(dialog, ERROR_PROMPT_DEFAULT_THEME);
+
+  GtkBox *content_area = GTK_BOX(gtk_dialog_get_content_area(dialog));
+  GtkWidget *error_occurred = gtk_label_new("An error ocurred. Do you want to change to default theme? (gruvbox)");
+
+  char *error_message = g_strdup_printf("%s %d: %s", source_id, line, message);
+  GtkWidget *label = gtk_label_new(error_message);
+
+  gtk_container_add(GTK_CONTAINER(content_area), error_occurred);
+  gtk_container_add(GTK_CONTAINER(content_area), label);
+  gtk_widget_show_all(GTK_WIDGET(content_area));
+
+  gtk_widget_set_name(GTK_WIDGET(dialog), "error-prompt");
+  int response = gtk_dialog_run(dialog);
+  gtk_widget_destroy(GTK_WIDGET(dialog));
+
+  switch ((ErrorPromptResponseType) response) {
+    case ERROR_PROMPT_CANCEL:
+      break;
+    case ERROR_PROMPT_DEFAULT_THEME:
+      /*greeter_config->greeter->theme = g_strdup("gruvbox");*/
+      break;
+    case ERROR_PROMPT_RELOAD_THEME:
+      webkit_web_view_reload(WEBKIT_WEB_VIEW(web_view));
+      break;
+    default:
+      break;
+  }
+}
 
 /*
  * Callback to be executed when a web-view user message is received
@@ -36,6 +101,11 @@ browser_web_view_user_message_received_cb(BrowserWebView *web_view, WebKitUserMe
     gtk_widget_show_all(window);
     priv->loaded = true;
     logger_debug("Sea greeter started win: %d", gtk_application_window_get_id(GTK_APPLICATION_WINDOW(window)));
+    return;
+  }
+
+  if (g_strcmp0(name, "console") == 0) {
+    show_console_error_prompt(web_view, message);
     return;
   }
 
