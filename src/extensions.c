@@ -4,6 +4,9 @@
 #include "logger.h"
 
 #include "extension/greeter_config.h"
+#include "utils/ipc-renderer.h"
+
+gboolean stop_prompts = false;
 
 guint64 page_id;
 
@@ -12,6 +15,7 @@ web_page_document_loaded(WebKitWebPage *web_page, gpointer user_data)
 {
   (void) user_data;
   /*printf("Web Page %lu loaded\n", webkit_web_page_get_id(web_page));*/
+  stop_prompts = false;
 
   WebKitUserMessage *message = webkit_user_message_new("ready-to-show", NULL);
   webkit_web_page_send_message_to_view(web_page, message, NULL, NULL, NULL);
@@ -56,7 +60,16 @@ web_page_send_console_message_to_view(
 {
   GVariant *params = g_variant_new("(sssu)", type, message, source_id, line);
   WebKitUserMessage *user_message = webkit_user_message_new("console", params);
-  webkit_web_page_send_message_to_view(web_page, user_message, NULL, NULL, NULL);
+  WebKitUserMessage *reply = ipc_renderer_send_message_sync(web_page, user_message);
+  if (reply == NULL)
+    return;
+
+  GVariant *reply_params = webkit_user_message_get_parameters(reply);
+
+  gboolean stop_p = false;
+  g_variant_get(reply_params, "(b)", &stop_p);
+
+  stop_prompts = stop_p;
 }
 
 static void
@@ -76,7 +89,8 @@ web_page_console_message_sent(WebKitWebPage *web_page, WebKitConsoleMessage *con
     case WEBKIT_CONSOLE_MESSAGE_LEVEL_ERROR:
       type = "ERROR";
       WEB_PAGE_LOG();
-      web_page_send_console_message_to_view(web_page, type, message, source_id, line);
+      if (!stop_prompts)
+        web_page_send_console_message_to_view(web_page, type, message, source_id, line);
       break;
     case WEBKIT_CONSOLE_MESSAGE_LEVEL_WARNING:
       type = "WARNING";

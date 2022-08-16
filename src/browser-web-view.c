@@ -5,8 +5,10 @@
 #include "bridge/lightdm.h"
 #include "bridge/theme_utils.h"
 #include "browser-web-view.h"
+#include "browser.h"
 #include "logger.h"
 #include "settings.h"
+#include "theme.h"
 
 extern GreeterConfig *greeter_config;
 
@@ -37,11 +39,11 @@ show_console_error_prompt(BrowserWebView *web_view, WebKitUserMessage *user_mess
 
   g_variant_get(params, "(sssu)", &type, &message, &source_id, &line);
 
-  GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(web_view));
+  GtkWidget *root_window = gtk_widget_get_toplevel(GTK_WIDGET(web_view));
 
   GtkDialog *dialog = GTK_DIALOG(gtk_dialog_new_with_buttons(
       "An error ocurred",
-      GTK_WINDOW(window),
+      GTK_WINDOW(root_window),
       GTK_DIALOG_MODAL,
       "_Cancel",
       ERROR_PROMPT_CANCEL,
@@ -67,18 +69,29 @@ show_console_error_prompt(BrowserWebView *web_view, WebKitUserMessage *user_mess
   int response = gtk_dialog_run(dialog);
   gtk_widget_destroy(GTK_WIDGET(dialog));
 
+  gboolean stop_prompts = false;
+
   switch ((ErrorPromptResponseType) response) {
     case ERROR_PROMPT_CANCEL:
       break;
     case ERROR_PROMPT_DEFAULT_THEME:
-      /*greeter_config->greeter->theme = g_strdup("gruvbox");*/
+      if (!BROWSER_IS_WINDOW(root_window))
+        break;
+      stop_prompts = true;
+      greeter_config->greeter->theme = g_strdup("gruvbox");
+      Browser *browser = BROWSER_WINDOW(root_window);
+      load_theme(browser);
       break;
     case ERROR_PROMPT_RELOAD_THEME:
+      stop_prompts = true;
       webkit_web_view_reload(WEBKIT_WEB_VIEW(web_view));
       break;
     default:
       break;
   }
+  GVariant *reply_params = g_variant_new("(b)", stop_prompts);
+  WebKitUserMessage *reply = webkit_user_message_new("console-done", reply_params);
+  webkit_user_message_send_reply(user_message, reply);
 }
 
 /*
