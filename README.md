@@ -32,7 +32,7 @@ However, it is functional :D
     - [x] Parse `index.yml` to load `secondary.html`
 - [ ] Brightness feature support
 - [ ] Battery feature support
-- [ ] Detect theme errors prompt
+- [x] Detect theme errors prompt
 - [x] Memory management might not be correct; possible memory leaks. (I hope this is fixed)
 - [x] Add themes
 - [x] Add config
