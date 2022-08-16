@@ -11,6 +11,7 @@
 #include "theme.h"
 
 extern GreeterConfig *greeter_config;
+extern GPtrArray *greeter_browsers;
 
 struct _BrowserWebView {
   WebKitWebView parent_instance;
@@ -78,19 +79,26 @@ show_console_error_prompt(BrowserWebView *web_view, WebKitUserMessage *user_mess
       if (!BROWSER_IS_WINDOW(root_window))
         break;
       stop_prompts = true;
+      g_free(greeter_config->greeter->theme);
       greeter_config->greeter->theme = g_strdup("gruvbox");
-      Browser *browser = BROWSER_WINDOW(root_window);
-      load_theme(browser);
+      for (guint i = 0; i < greeter_browsers->len; i++) {
+        Browser *browser = greeter_browsers->pdata[i];
+        load_theme(browser);
+      }
       break;
     case ERROR_PROMPT_RELOAD_THEME:
       stop_prompts = true;
-      webkit_web_view_reload(WEBKIT_WEB_VIEW(web_view));
+      for (guint i = 0; i < greeter_browsers->len; i++) {
+        Browser *browser = greeter_browsers->pdata[i];
+        BrowserWebView *web_v = browser->web_view;
+        webkit_web_view_reload(WEBKIT_WEB_VIEW(web_v));
+      }
       break;
     default:
       break;
   }
-  GVariant *reply_params = g_variant_new("(b)", stop_prompts);
-  WebKitUserMessage *reply = webkit_user_message_new("console-done", reply_params);
+  g_autoptr(GVariant) reply_params = g_variant_new("(b)", stop_prompts);
+  WebKitUserMessage *reply = webkit_user_message_new("console-done", g_steal_pointer(&reply_params));
   webkit_user_message_send_reply(user_message, reply);
 }
 
