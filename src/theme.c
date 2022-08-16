@@ -64,7 +64,7 @@ load_primary_theme_path()
     load_theme_dir();
 
   const char *theme = greeter_config->greeter->theme;
-  const char *theme_name = g_path_get_basename(theme);
+  char *theme_name = g_path_get_basename(theme);
   const char *dir = greeter_config->app->theme_dir;
 
   const char *def_theme = "gruvbox";
@@ -73,6 +73,7 @@ load_primary_theme_path()
     g_free(greeter_config->theme->primary_html);
     greeter_config->theme->primary_html = g_strdup(theme_name);
   }
+  g_free(theme_name);
 
   const char *primary = greeter_config->theme->primary_html;
   char *path_to_theme = g_build_path("/", theme_dir, primary, NULL);
@@ -155,6 +156,18 @@ process_layer(yaml_parser_t *parser, GNode *data)
   }
 }
 
+static gboolean
+node_free(GNode *node, gpointer data)
+{
+  (void) data;
+  char *str = node->data;
+  if (str != NULL) {
+    g_free(str);
+    node->data = NULL;
+  }
+  return false;
+}
+
 void
 load_theme_config()
 {
@@ -171,7 +184,7 @@ load_theme_config()
 
   yaml_parser_set_input_file(&parser, file);
 
-  GNode *cfg = g_node_new(path_to_theme_config);
+  GNode *cfg = g_node_new(g_strdup(path_to_theme_config));
   process_layer(&parser, cfg);
 
   yaml_parser_delete(&parser);
@@ -196,7 +209,10 @@ load_theme_config()
     }
     node = node->next;
   } while (node != NULL);
+
+  g_node_traverse(cfg, G_PRE_ORDER, G_TRAVERSE_ALL, -1, node_free, NULL);
   g_node_destroy(cfg);
+
   g_free(path_to_theme_config);
 }
 

@@ -11,7 +11,7 @@ GreeterConfig *greeter_config;
 static void
 init_greeter_config_branding()
 {
-  GreeterConfigBranding *branding = greeter_config->branding;
+  GreeterConfigBranding *branding = NULL;
   branding = malloc(sizeof *branding);
   branding->background_images_dir = NULL;
   branding->logo_image = NULL;
@@ -21,7 +21,7 @@ init_greeter_config_branding()
 static void
 init_greeter_config_greeter()
 {
-  GreeterConfigGreeter *greeter = greeter_config->greeter;
+  GreeterConfigGreeter *greeter = NULL;
   greeter = malloc(sizeof *greeter);
   greeter->debug_mode = false;
   greeter->detect_theme_errors = true;
@@ -35,7 +35,7 @@ init_greeter_config_greeter()
 static void
 init_greeter_config_features()
 {
-  GreeterConfigFeatures *features = greeter_config->features;
+  GreeterConfigFeatures *features = NULL;
   features = malloc(sizeof *features);
   features->battery = false;
   features->backlight = malloc(sizeof *(features->backlight));
@@ -47,7 +47,7 @@ init_greeter_config_features()
 static void
 init_greeter_config_app()
 {
-  GreeterConfigApp *app = greeter_config->app;
+  GreeterConfigApp *app = NULL;
   app = malloc(sizeof *app);
   app->debug_mode = false;
   app->fullscreen = true;
@@ -57,7 +57,7 @@ init_greeter_config_app()
 static void
 init_greeter_config_theme()
 {
-  GreeterConfigTheme *theme = greeter_config->theme;
+  GreeterConfigTheme *theme = NULL;
   theme = malloc(sizeof *theme);
   theme->primary_html = g_strdup("index.html");
   theme->secondary_html = NULL;
@@ -342,12 +342,24 @@ process_layer(yaml_parser_t *parser, GNode *data)
   }
 }
 
+static gboolean
+node_free(GNode *node, gpointer data)
+{
+  (void) data;
+  char *str = node->data;
+  if (str != NULL) {
+    g_free(str);
+    node->data = NULL;
+  }
+  return false;
+}
+
 void
 load_configuration()
 {
   init_greeter_config();
 
-  char *path_to_config = "/etc/lightdm/web-greeter.yml";
+  const char *path_to_config = "/etc/lightdm/web-greeter.yml";
   FILE *fh = fopen(path_to_config, "rb");
   yaml_parser_t parser;
 
@@ -358,7 +370,7 @@ load_configuration()
 
   yaml_parser_set_input_file(&parser, fh);
 
-  GNode *cfg = g_node_new(path_to_config);
+  GNode *cfg = g_node_new(g_strdup(path_to_config));
   process_layer(&parser, cfg);
 
   yaml_parser_delete(&parser);
@@ -379,6 +391,8 @@ load_configuration()
       break;
     node = node->next;
   } while (node != NULL);
+
+  g_node_traverse(cfg, G_PRE_ORDER, G_TRAVERSE_ALL, -1, node_free, NULL);
   g_node_destroy(cfg);
 
   logger_debug("Configuration loaded");
