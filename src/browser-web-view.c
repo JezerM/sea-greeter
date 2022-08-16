@@ -180,6 +180,8 @@ browser_web_view_constructed(GObject *object)
   g_object_set(G_OBJECT(settings), "enable-page-cache", TRUE, NULL);
   g_object_set(G_OBJECT(settings), "enable-offline-web-application-cache", TRUE, NULL);
   g_object_set(G_OBJECT(settings), "enable-html5-local-storage", TRUE, NULL);
+  g_object_set(G_OBJECT(settings), "enable-webgl", TRUE, NULL);
+  g_object_set(G_OBJECT(settings), "hardware-acceleration-policy", WEBKIT_HARDWARE_ACCELERATION_POLICY_ALWAYS, NULL);
 
   WebKitWebContext *context = webkit_web_view_get_context(WEBKIT_WEB_VIEW(web_view));
   webkit_web_context_set_cache_model(context, WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER);
