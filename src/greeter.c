@@ -30,8 +30,9 @@ initialize_web_extensions(WebKitWebContext *context, gpointer user_data)
   (void) user_data;
 
   gboolean secure_mode = greeter_config->greeter->secure_mode;
+  gboolean detect_theme_errors = greeter_config->greeter->detect_theme_errors;
   g_autoptr(GVariant) data = NULL;
-  data = g_variant_new("(b)", secure_mode);
+  data = g_variant_new("(bb)", secure_mode, detect_theme_errors);
 
   logger_debug("Extension initialized");
 

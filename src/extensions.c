@@ -7,6 +7,7 @@
 #include "utils/ipc-renderer.h"
 
 gboolean stop_prompts = false;
+gboolean detect_theme_errors = false;
 
 guint64 page_id;
 
@@ -58,18 +59,15 @@ web_page_send_console_message_to_view(
     const char *source_id,
     guint line)
 {
-  GVariant *params = g_variant_new("(sssu)", type, message, source_id, line);
-  WebKitUserMessage *user_message = webkit_user_message_new("console", params);
+  g_autoptr(GVariant) params = g_variant_new("(sssu)", type, message, source_id, line);
+  WebKitUserMessage *user_message = webkit_user_message_new("console", g_steal_pointer(&params));
   WebKitUserMessage *reply = ipc_renderer_send_message_sync(web_page, user_message);
   if (reply == NULL)
     return;
 
-  GVariant *reply_params = webkit_user_message_get_parameters(reply);
+  g_autoptr(GVariant) reply_params = webkit_user_message_get_parameters(reply);
 
-  gboolean stop_p = false;
-  g_variant_get(reply_params, "(b)", &stop_p);
-
-  stop_prompts = stop_p;
+  g_variant_get(reply_params, "(b)", &stop_prompts);
 }
 
 static void
@@ -89,7 +87,7 @@ web_page_console_message_sent(WebKitWebPage *web_page, WebKitConsoleMessage *con
     case WEBKIT_CONSOLE_MESSAGE_LEVEL_ERROR:
       type = "ERROR";
       WEB_PAGE_LOG();
-      if (!stop_prompts)
+      if (!stop_prompts && detect_theme_errors)
         web_page_send_console_message_to_view(web_page, type, message, source_id, line);
       break;
     case WEBKIT_CONSOLE_MESSAGE_LEVEL_WARNING:
@@ -107,7 +105,7 @@ web_page_created_callback(WebKitWebExtension *extension, WebKitWebPage *web_page
   (void) extension;
 
   gboolean secure_mode = false;
-  g_variant_get(user_data, "(b)", &secure_mode, NULL);
+  g_variant_get(user_data, "(bb)", &secure_mode, &detect_theme_errors);
 
   page_id = webkit_web_page_get_id(web_page);
 
