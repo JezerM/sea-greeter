@@ -236,24 +236,9 @@ load_theme(Browser *browser)
   g_free(primary_html);
   g_free(secondary_html);
 
-  FILE *file = fopen(theme, "r");
-  if (!file) {
-    logger_error("Theme couldn't be loaded");
-    webkit_web_view_load_plain_text(web_view, "Theme couldn't be loaded.");
-    g_free(theme);
-    return;
-  }
-  GString *html = g_string_new(NULL);
-  int c;
-  while ((c = fgetc(file)) != EOF) {
-    g_string_append_c(html, c);
-  }
-  fclose(file);
-
   char *uri = g_strconcat("file://", theme, NULL);
-  webkit_web_view_load_html(web_view, html->str, uri);
+  webkit_web_view_load_uri(web_view, uri);
   g_free(uri);
-  g_string_free(html, true);
   g_free(theme);
 
   logger_debug("Theme loaded");
