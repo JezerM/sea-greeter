@@ -3,8 +3,9 @@
 
 #include "browser.h"
 
-void
-load_theme_config();
+GPtrArray *list_themes();
+void print_themes();
+void load_theme_config();
 void load_theme(Browser *browser);
 
 #endif

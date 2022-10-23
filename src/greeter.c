@@ -224,7 +224,7 @@ g_application_parse_args(gint *argc, gchar ***argv)
     exit(0);
   }
   if (list) {
-    printf("List\n"); // TODO
+    print_themes();
     exit(0);
   }
 

@@ -1,6 +1,7 @@
 #include <glib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <webkit2/webkit2.h>
 #include <yaml.h>
@@ -13,6 +14,73 @@
 extern GreeterConfig *greeter_config;
 
 char *theme_dir = NULL;
+
+#define WEB_GREETER_THEMES_PATH "/usr/share/web-greeter/themes/"
+
+static gint
+sort_ptr_array(gconstpointer a, gconstpointer b)
+{
+  const char *entry1 = *((char **) a);
+  const char *entry2 = *((char **) b);
+
+  char *entry1_f = g_utf8_casefold(entry1, strlen(entry1));
+  char *entry2_f = g_utf8_casefold(entry2, strlen(entry2));
+
+  const gboolean value = strcmp(entry1_f, entry2_f) > 0;
+
+  g_free(entry1_f);
+  g_free(entry2_f);
+
+  return value;
+}
+
+GPtrArray *
+list_themes()
+{
+  DIR *dir;
+  struct dirent *ent;
+  dir = opendir(WEB_GREETER_THEMES_PATH);
+  if (dir == NULL) {
+    printf("There are no themes located at %s\n", WEB_GREETER_THEMES_PATH);
+    return NULL;
+  }
+
+  GPtrArray *themes = g_ptr_array_new();
+
+  while ((ent = readdir(dir)) != NULL) {
+    char *file_name = ent->d_name;
+    if (g_strcmp0(file_name, ".") == 0 || g_strcmp0(file_name, "..") == 0) {
+      continue;
+    }
+    char *file_path = g_build_path("/", WEB_GREETER_THEMES_PATH, file_name, NULL);
+    struct stat file_stat;
+    stat(file_path, &file_stat);
+    if (S_ISDIR(file_stat.st_mode)) {
+      g_ptr_array_add(themes, file_name);
+    }
+  }
+
+  g_ptr_array_sort(themes, sort_ptr_array);
+
+  return themes;
+}
+
+void
+print_themes()
+{
+  GPtrArray *themes = list_themes();
+  if (themes == NULL)
+    return;
+
+  printf("Themes are located in %s\n\n", WEB_GREETER_THEMES_PATH);
+
+  for (uint i = 0; i < themes->len; i++) {
+    char *theme = themes->pdata[i];
+    printf("- %s\n", theme);
+  }
+
+  g_ptr_array_free(themes, true);
+}
 
 /**
  * Loads the theme directory
