@@ -65,6 +65,16 @@ ipc_renderer_send_message(WebKitWebPage *web_page, WebKitUserMessage *message, G
   webkit_web_page_send_message_to_view(web_page, message, NULL, callback, NULL);
 }
 
+/**
+ * Sends a message to web_view synchronously with arguments
+ *
+ * @param web_page A WebKitWebPage
+ * @param jsc_context The JSCContext object
+ * @param object The backend object to access
+ * @param target The target property/method to call
+ * @param arguments A GPtrArray of JSCValue parameters
+ * @Returns The received response from web_view
+ */
 WebKitUserMessage *
 ipc_renderer_send_message_sync_with_arguments(
     WebKitWebPage *web_page,
@@ -79,4 +89,34 @@ ipc_renderer_send_message_sync_with_arguments(
   WebKitUserMessage *message = webkit_user_message_new(object, parameters);
   WebKitUserMessage *reply = ipc_renderer_send_message_sync(web_page, message);
   return reply;
+}
+
+/**
+ * Sends a message to web_view with arguments
+ *
+ * @param web_page A WebKitWebPage
+ * @param jsc_context The JSCContext object
+ * @param object The backend object to access
+ * @param target The target property/method to call
+ * @param arguments A GPtrArray of JSCValue parameters
+ * @param callback A callback
+ * @param callback Extra data
+ */
+void
+ipc_renderer_send_message_with_arguments(
+    WebKitWebPage *web_page,
+    JSCContext *jsc_context,
+    const char *object,
+    const char *target,
+    GPtrArray *arguments,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+
+  if (!JSC_IS_CONTEXT(jsc_context))
+    return;
+
+  GVariant *parameters = jsc_parameters_to_g_variant_array(jsc_context, target, arguments);
+  WebKitUserMessage *message = webkit_user_message_new(object, parameters);
+  webkit_web_page_send_message_to_view(web_page, message, NULL, callback, user_data);
 }
