@@ -11,21 +11,50 @@
 #include "utils/utils.h"
 
 static WebKitWebPage *WebPage;
-static ldm_object *GreeterComm_object;
+static JSCContext *global_context;
+static JSCValue *Comm_value;
+/*static ldm_object *GreeterComm_object;*/
 
-static void *
-GreeterComm_broadcast_cb(ldm_object *instance, GPtrArray *arguments)
+typedef struct _Comm Comm;
+struct _Comm {
+  JSCValue *_window_metadata;
+  JSCValue *_ready_promise;
+  JSCValue *_ready;
+};
+
+static JSCValue *
+GreeterComm_window_metadata_cb(Comm *instance)
 {
-  JSCContext *context = instance->context;
+  JSCContext *context = jsc_context_get_current();
+
+  if (instance->_window_metadata != NULL && !jsc_value_is_undefined(instance->_window_metadata))
+    return g_object_ref(instance->_window_metadata);
+
+  jsc_context_throw(context, "window_metadata not available, did you wait for the GreeterReady event?");
+
+  return jsc_value_new_null(context);
+}
+
+static void
+GreeterComm_broadcast_cb(Comm *instance, GPtrArray *arguments)
+{
+  JSCContext *context = jsc_context_get_current();
 
   GVariant *parameters = jsc_parameters_to_g_variant_array(context, "broadcast", arguments);
   WebKitUserMessage *message = webkit_user_message_new("greeter_comm", parameters);
 
   webkit_web_page_send_message_to_view(WebPage, message, NULL, NULL, NULL);
-
-  return NULL;
+}
+static JSCValue *
+GreeterComm_when_ready_cb(Comm *instance, GPtrArray *arguments)
+{
+  (void) arguments;
+  return g_object_ref(instance->_ready_promise);
 }
 
+/**
+ * Handle broadcast message
+ */
 static gboolean
 handle_comm_broadcast(WebKitWebPage *web_page, WebKitUserMessage *message)
 {
@@ -44,7 +73,7 @@ handle_comm_broadcast(WebKitWebPage *web_page, WebKitUserMessage *message)
     return false;
   }
 
-  JSCContext *context = GreeterComm_object->context;
+  JSCContext *context = global_context;
   JSCValue *parameters = NULL;
 
   GVariant *method_var = g_variant_get_child_value(msg_param, 0);
@@ -87,10 +116,78 @@ web_page_user_message_received(WebKitWebPage *web_page, WebKitUserMessage *messa
   return handle_comm_broadcast(web_page, message);
 }
 
-static JSCValue *
+/**
+ * Callback to the window metadata request
+ */
+static void
+request_window_metadata_cb(GObject *web_page, GAsyncResult *res, gpointer user_data)
+{
+  Comm *instance = user_data;
+
+  WebKitUserMessage *response = webkit_web_page_send_message_to_view_finish(WEBKIT_WEB_PAGE(web_page), res, NULL);
+
+  instance->_window_metadata = jsc_value_new_string(global_context, "UWU");
+
+  /*printf("instance->_ready: %p - %d\n", instance->_ready, jsc_value_is_function(instance->_ready));*/
+
+  if (instance->_ready != NULL && jsc_value_is_function(instance->_ready))
+    (void) jsc_value_function_call(instance->_ready, G_TYPE_NONE, NULL);
+}
+
+/**
+ * Internal method that requests the window metadata to the backend
+ */
+static void
+GreeterComm_request_window_metadata(Comm *instance)
+{
+  ipc_renderer_send_message_with_arguments(
+      WebPage,
+      global_context,
+      "greeter_comm",
+      "window_metadata",
+      NULL,
+      request_window_metadata_cb,
+      instance);
+}
+
+/**
+ * Set _ready property as the resolve function
+ */
+static void
+GreeterComm_promise_resolve(GPtrArray *arguments, Comm *instance)
+{
+  if (arguments->len == 0)
+    return;
+  JSCValue *resolve = arguments->pdata[0];
+
+  instance->_ready = g_object_ref(resolve);
+}
+static Comm *
 GreeterComm_constructor(JSCContext *context)
 {
-  return jsc_value_new_null(context);
+  Comm *instance = g_malloc(sizeof *instance);
+  instance->_window_metadata = NULL;
+  instance->_ready = NULL;
+
+  // Construct a new Promise with GreeterComm_promise_resolve as the promise function
+  JSCValue *global_object = jsc_context_get_global_object(global_context);
+  JSCValue *promise_constructor = jsc_value_object_get_property(global_object, "Promise");
+
+  JSCValue *promise_callback = jsc_value_new_function_variadic(
+      context,
+      "promise_resolve",
+      G_CALLBACK(GreeterComm_promise_resolve),
+      instance,
+      NULL,
+      G_TYPE_NONE);
+
+  JSCValue *promise = jsc_value_constructor_call(promise_constructor, JSC_TYPE_VALUE, promise_callback, G_TYPE_NONE);
+
+  instance->_ready_promise = promise;
+
+  GreeterComm_request_window_metadata(instance);
+
+  return instance;
 }
 
 /**
@@ -107,45 +204,42 @@ GreeterComm_initialize(
 
   WebPage = web_page;
 
-  JSCContext *js_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
-  JSCValue *global_object = jsc_context_get_global_object(js_context);
+  global_context = webkit_frame_get_js_context_for_script_world(web_frame, world);
+  JSCValue *global_object = jsc_context_get_global_object(global_context);
 
-  if (GreeterComm_object != NULL) {
-    jsc_value_object_set_property(global_object, "greeter_comm", GreeterComm_object->value);
+  if (Comm_value != NULL) {
+    jsc_value_object_set_property(global_object, "greeter_comm", Comm_value);
     return;
   }
 
   g_signal_connect(web_page, "user-message-received", G_CALLBACK(web_page_user_message_received), NULL);
 
+  const struct JSCClassProperty Comm_properties[] = {
+    { "window_metadata", G_CALLBACK(GreeterComm_window_metadata_cb), NULL, JSC_TYPE_VALUE },
+    { NULL, NULL, NULL, 0 },
+  };
+
   const struct JSCClassMethod Comm_methods[] = {
     { "broadcast", G_CALLBACK(GreeterComm_broadcast_cb), G_TYPE_NONE },
+    { "whenReady", G_CALLBACK(GreeterComm_when_ready_cb), JSC_TYPE_VALUE },
     { NULL, NULL, 0 },
   };
 
-  JSCClass *Comm_class = jsc_context_register_class(js_context, "__GreeterComm", NULL, NULL, NULL);
+  JSCClass *Comm_class = jsc_context_register_class(global_context, "__GreeterComm", NULL, NULL, NULL);
   JSCValue *gc_constructor = jsc_class_add_constructor(
       Comm_class,
       NULL,
       G_CALLBACK(GreeterComm_constructor),
-      js_context,
+      global_context,
       NULL,
-      JSC_TYPE_VALUE,
+      G_TYPE_POINTER,
       0,
       NULL);
+  /*jsc_value_object_set_property(global_object, jsc_class_get_name(Comm_class), gc_constructor);*/
 
-  /*initialize_class_properties(Comm_class, LightDM_properties);*/
+  initialize_class_properties(Comm_class, Comm_properties);
   initialize_class_methods(Comm_class, Comm_methods);
 
-  JSCValue *value = jsc_value_constructor_callv(gc_constructor, 0, NULL);
-  GreeterComm_object = malloc(sizeof *GreeterComm_object);
-  GreeterComm_object->value = value;
-  GreeterComm_object->context = js_context;
-
-  JSCValue *comm_object = jsc_value_new_object(js_context, GreeterComm_object, Comm_class);
-
-  GreeterComm_object->value = comm_object;
-
-  jsc_value_object_set_property(global_object, "greeter_comm", comm_object);
-
-  /*g_signal_connect(web_page, "document-loaded", G_CALLBACK(ready_event_loaded), js_context);*/
+  Comm_value = jsc_value_constructor_callv(gc_constructor, 0, NULL);
+  jsc_value_object_set_property(global_object, "greeter_comm", Comm_value);
 }
