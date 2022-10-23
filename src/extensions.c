@@ -87,6 +87,8 @@ web_page_console_message_sent(WebKitWebPage *web_page, WebKitConsoleMessage *con
     case WEBKIT_CONSOLE_MESSAGE_LEVEL_ERROR:
       type = "ERROR";
       WEB_PAGE_LOG();
+      if (g_strrstr(source_id, "file://") != NULL)
+        break;
       if (!stop_prompts && detect_theme_errors)
         web_page_send_console_message_to_view(web_page, type, message, source_id, line);
       break;
