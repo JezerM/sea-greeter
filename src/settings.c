@@ -273,8 +273,8 @@ load_layouts(GNode *node)
   if (node == NULL)
     return;
   char *value = node->data;
-  g_ptr_array_add(greeter_config->layouts, value);
-  /*printf("  %s\n", (char*) value);*/
+  g_ptr_array_add(greeter_config->layouts, g_strdup(value));
+  /*printf("  %s\n", (char *) value);*/
   load_layouts(node->next);
 }
 static void
