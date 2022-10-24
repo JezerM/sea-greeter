@@ -175,21 +175,20 @@ browser_web_view_constructed(GObject *object)
   BrowserWebView *web_view = BROWSER_WEB_VIEW(object);
 
   WebKitSettings *settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(web_view));
-  g_object_set(G_OBJECT(settings), "allow-universal-access-from-file-urls", TRUE, NULL);
-  g_object_set(G_OBJECT(settings), "allow-file-access-from-file-urls", TRUE, NULL);
-  g_object_set(G_OBJECT(settings), "enable-page-cache", TRUE, NULL);
-  g_object_set(G_OBJECT(settings), "enable-offline-web-application-cache", TRUE, NULL);
-  g_object_set(G_OBJECT(settings), "enable-html5-local-storage", TRUE, NULL);
-  g_object_set(G_OBJECT(settings), "enable-webgl", TRUE, NULL);
+  g_object_set(G_OBJECT(settings), "allow-universal-access-from-file-urls", true, NULL);
+  g_object_set(G_OBJECT(settings), "allow-file-access-from-file-urls", true, NULL);
+  g_object_set(G_OBJECT(settings), "enable-page-cache", true, NULL);
+  g_object_set(G_OBJECT(settings), "enable-offline-web-application-cache", true, NULL);
+  g_object_set(G_OBJECT(settings), "enable-html5-local-storage", true, NULL);
+  g_object_set(G_OBJECT(settings), "enable-webgl", true, NULL);
   g_object_set(G_OBJECT(settings), "hardware-acceleration-policy", WEBKIT_HARDWARE_ACCELERATION_POLICY_ALWAYS, NULL);
 
   WebKitWebContext *context = webkit_web_view_get_context(WEBKIT_WEB_VIEW(web_view));
   webkit_web_context_set_cache_model(context, WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER);
 
-  GdkRGBA *rgba = malloc(sizeof *rgba);
+  g_autoptr(GdkRGBA) rgba = malloc(sizeof *rgba);
   gdk_rgba_parse(rgba, "#000000");
   webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(web_view), rgba);
-  g_free(rgba);
 
   g_signal_connect(web_view, "user-message-received", G_CALLBACK(browser_web_view_user_message_received_cb), NULL);
   g_signal_connect(web_view, "context-menu", G_CALLBACK(browser_web_view_context_menu_cb), NULL);

@@ -42,7 +42,8 @@ ThemeUtils_dirlist_cb(GPtrArray *arguments)
   if (g_strcmp0(path, "/") == 0) {
     return value;
   }
-  if (g_strcmp0(g_utf8_substring(path, 0, 1), "./") == 0) {
+  g_autofree gchar *substring = g_utf8_substring(path, 0, 1);
+  if (g_strcmp0(substring, "./") == 0) {
     return value;
   }
 
@@ -81,10 +82,11 @@ ThemeUtils_dirlist_cb(GPtrArray *arguments)
     printf("Opendir error: '%s'\n", strerror(errno));
     return value;
   }
+  g_object_unref(value);
 
-  GPtrArray *files = g_ptr_array_new();
+  g_autoptr(GPtrArray) files = g_ptr_array_new();
 
-  GRegex *regex = g_regex_new(".+\\.(jpe?g|png|gif|bmp|webp)", G_REGEX_CASELESS, 0, NULL);
+  g_autoptr(GRegex) regex = g_regex_new(".+\\.(jpe?g|png|gif|bmp|webp)", G_REGEX_CASELESS, 0, NULL);
 
   while ((ent = readdir(dir)) != NULL) {
     char *file_name = ent->d_name;
@@ -92,7 +94,8 @@ ThemeUtils_dirlist_cb(GPtrArray *arguments)
       continue;
     }
 
-    char *file_path = g_build_path("/", resolved_path, file_name, NULL);
+    g_autofree char *file_path = g_build_path("/", resolved_path, file_name, NULL);
+    g_autoptr(JSCValue) file_element = jsc_value_new_string(context, file_path);
     /*printf("-> '%s'\n", file_name);*/
 
     if (jsc_value_is_boolean(jsc_only_images) && jsc_value_to_boolean(jsc_only_images)) {
@@ -100,17 +103,15 @@ ThemeUtils_dirlist_cb(GPtrArray *arguments)
       stat(file_path, &file_stat);
       if (S_ISREG(file_stat.st_mode) && g_regex_match(regex, file_name, 0, NULL)) {
         /*printf("\tFile match!\n");*/
-        g_ptr_array_add(files, jsc_value_new_string(context, file_path));
+        g_ptr_array_add(files, g_steal_pointer(&file_element));
       }
     } else {
-      g_ptr_array_add(files, jsc_value_new_string(context, file_path));
+      g_ptr_array_add(files, g_steal_pointer(&file_element));
     }
-    g_free(file_path);
   }
   closedir(dir);
 
   value = jsc_value_new_array_from_garray(context, files);
-  g_ptr_array_free(files, true);
 
   return value;
 }

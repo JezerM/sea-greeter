@@ -17,14 +17,27 @@ typedef enum {
 static GParamSpec *bridge_object_properties[N_PROPERTIES] = { NULL };
 
 static void
+bridge_object_free_property(gpointer data)
+{
+  struct JSCClassProperty *prop = data;
+  g_free(prop);
+}
+static void
+bridge_object_free_method(gpointer data)
+{
+  struct JSCClassMethod *method = data;
+  g_free(method);
+}
+
+static void
 bridge_object_dispose(GObject *object)
 {
   G_OBJECT_CLASS(bridge_object_parent_class)->dispose(object);
   BridgeObject *self = BRIDGE_OBJECT(object);
 
   g_free(self->name);
-  g_ptr_array_free(self->properties, TRUE);
-  g_ptr_array_free(self->methods, TRUE);
+  g_ptr_array_free(self->properties, true);
+  g_ptr_array_free(self->methods, true);
 }
 
 static void
@@ -96,8 +109,8 @@ bridge_object_class_init(BridgeObjectClass *klass)
 static void
 bridge_object_init(BridgeObject *self)
 {
-  self->properties = g_ptr_array_new();
-  self->methods = g_ptr_array_new();
+  self->properties = g_ptr_array_new_with_free_func(bridge_object_free_property);
+  self->methods = g_ptr_array_new_with_free_func(bridge_object_free_method);
 }
 
 static void
@@ -124,11 +137,10 @@ bridge_object_handle_property(
         break;
       }
 
-      JSCValue *jsc_value = ((JSCValue * (*) (void) ) current->getter)();
-      gchar *json_value = g_strdup("undefined");
+      g_autoptr(JSCValue) jsc_value = ((JSCValue * (*) (void) ) current->getter)();
+      g_autofree gchar *json_value = g_strdup("undefined");
       if (JSC_IS_VALUE(jsc_value)) {
         json_value = jsc_value_to_json(jsc_value, 0);
-        g_object_unref(jsc_value);
       }
       /*printf("JSON value: '%s'\n", json_value);*/
 
@@ -136,7 +148,6 @@ bridge_object_handle_property(
       WebKitUserMessage *reply = webkit_user_message_new("reply", value);
 
       webkit_user_message_send_reply(message, reply);
-      g_free(json_value);
       break;
     }
   }
@@ -152,11 +163,10 @@ bridge_object_handle_method(BridgeObject *self, WebKitUserMessage *message, cons
     /*printf("Current: %d - %s\n", i, current->name);*/
 
     if (g_strcmp0(current->name, method) == 0) {
-      JSCValue *jsc_value = ((JSCValue * (*) (GPtrArray *) ) current->callback)(parameters);
-      gchar *json_value = g_strdup("undefined");
+      g_autoptr(JSCValue) jsc_value = ((JSCValue * (*) (GPtrArray *) ) current->callback)(parameters);
+      g_autofree gchar *json_value = g_strdup("undefined");
       if (JSC_IS_VALUE(jsc_value)) {
         json_value = jsc_value_to_json(jsc_value, 0);
-        g_object_unref(jsc_value);
       }
       /*printf("JSON value: '%s'\n", json_value);*/
 
@@ -164,7 +174,6 @@ bridge_object_handle_method(BridgeObject *self, WebKitUserMessage *message, cons
       WebKitUserMessage *reply = webkit_user_message_new("reply", value);
 
       webkit_user_message_send_reply(message, reply);
-      g_free(json_value);
       break;
     }
   }
@@ -193,7 +202,6 @@ bridge_object_handle_accessor(BridgeObject *self, WebKitWebView *web_view, WebKi
   }
 
   JSCContext *context = get_global_context();
-  JSCValue *parameters = NULL;
 
   GVariant *method_var = g_variant_get_child_value(msg_param, 0);
   GVariant *params_var = g_variant_get_child_value(msg_param, 1);
@@ -209,15 +217,12 @@ bridge_object_handle_accessor(BridgeObject *self, WebKitWebView *web_view, WebKi
     webkit_user_message_send_reply(message, empty_msg);
     return;
   }
-  parameters = jsc_value_new_from_json(context, json_params);
+  g_autoptr(JSCValue) parameters = jsc_value_new_from_json(context, json_params);
 
-  GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
-  g_object_unref(parameters);
+  g_autoptr(GPtrArray) g_array = jsc_array_to_g_ptr_array(parameters);
 
   bridge_object_handle_property(self, message, method, g_array);
   bridge_object_handle_method(self, message, method, g_array);
-
-  g_ptr_array_free(g_array, true);
 }
 
 BridgeObject *
@@ -233,7 +238,7 @@ bridge_object_new_full(
     const struct JSCClassMethod *methods,
     guint methods_length)
 {
-  GPtrArray *props = g_ptr_array_new_full(properties_length, NULL);
+  g_autoptr(GPtrArray) props = g_ptr_array_new_full(properties_length, bridge_object_free_property);
 
   for (guint i = 0; i < properties_length; i++) {
     struct JSCClassProperty *prop = malloc(sizeof *prop);
@@ -244,7 +249,7 @@ bridge_object_new_full(
     g_ptr_array_add(props, prop);
   }
 
-  GPtrArray *mets = g_ptr_array_new_full(methods_length, NULL);
+  g_autoptr(GPtrArray) mets = g_ptr_array_new_full(methods_length, bridge_object_free_method);
 
   for (guint i = 0; i < methods_length; i++) {
     struct JSCClassMethod *method = malloc(sizeof *method);
@@ -254,5 +259,13 @@ bridge_object_new_full(
     g_ptr_array_add(mets, method);
   }
 
-  return g_object_new(BRIDGE_TYPE_OBJECT, "name", name, "properties", props, "methods", mets, NULL);
+  return g_object_new(
+      BRIDGE_TYPE_OBJECT,
+      "name",
+      name,
+      "properties",
+      g_steal_pointer(&props),
+      "methods",
+      g_steal_pointer(&mets),
+      NULL);
 }

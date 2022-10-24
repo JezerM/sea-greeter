@@ -88,13 +88,13 @@ GreeterConfig_layouts_getter_cb()
 
   GList *layouts = lightdm_get_layouts();
   GPtrArray *config_layouts = greeter_config->layouts;
-  GPtrArray *final = g_ptr_array_new();
+  g_autoptr(GPtrArray) final = g_ptr_array_new();
 
   GList *ldm_layout = layouts;
   while (ldm_layout != NULL) {
     for (uint i = 0; i < config_layouts->len; i++) {
       char *conf_layout = config_layouts->pdata[i];
-      GString *str = g_string_new(conf_layout);
+      g_autoptr(GString) str = g_string_new(conf_layout);
       g_string_replace(str, " ", "\t", 0);
 
       LightDMLayout *lay = ldm_layout->data;
@@ -103,13 +103,11 @@ GreeterConfig_layouts_getter_cb()
         if (val != NULL)
           g_ptr_array_add(final, val);
       }
-      g_string_free(str, true);
     }
     ldm_layout = ldm_layout->next;
   }
 
   JSCValue *value = jsc_value_new_array_from_garray(context, final);
-  g_ptr_array_free(final, true);
   return value;
 }
 
