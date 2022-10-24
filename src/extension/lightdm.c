@@ -666,8 +666,9 @@ handle_lightdm_signal(WebKitWebPage *web_page, WebKitUserMessage *message)
 
   const gchar *signal = g_variant_to_string(method_var);
   const gchar *json_params = g_variant_to_string(params_var);
-  parameters = jsc_value_new_from_json(context, json_params);
 
+  g_variant_unref(method_var);
+  g_variant_unref(params_var);
   if (signal == NULL) {
     return false;
   }
@@ -676,10 +677,12 @@ handle_lightdm_signal(WebKitWebPage *web_page, WebKitUserMessage *message)
   if (jsc_signal == NULL) {
     return false;
   }
+  parameters = jsc_value_new_from_json(context, json_params);
   GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
   (void) jsc_value_object_invoke_methodv(jsc_signal, "emit", g_array->len, (JSCValue **) g_array->pdata);
 
   g_ptr_array_free(g_array, true);
+  g_object_unref(parameters);
   return true;
 }
 

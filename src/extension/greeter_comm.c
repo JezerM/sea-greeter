@@ -90,6 +90,7 @@ handle_comm_broadcast(WebKitWebPage *web_page, WebKitUserMessage *message)
   }
   parameters = jsc_value_new_from_json(context, json_params);
   JSCValue *data = jsc_value_object_get_property_at_index(parameters, 0);
+  g_object_unref(parameters);
 
   JSCValue *global_object = jsc_context_get_global_object(context);
   JSCValue *dispatch_event = jsc_value_object_get_property(global_object, "dispatchEvent");

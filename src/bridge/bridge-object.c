@@ -128,6 +128,7 @@ bridge_object_handle_property(
       gchar *json_value = g_strdup("undefined");
       if (JSC_IS_VALUE(jsc_value)) {
         json_value = jsc_value_to_json(jsc_value, 0);
+        g_object_unref(jsc_value);
       }
       /*printf("JSON value: '%s'\n", json_value);*/
 
@@ -155,6 +156,7 @@ bridge_object_handle_method(BridgeObject *self, WebKitUserMessage *message, cons
       gchar *json_value = g_strdup("undefined");
       if (JSC_IS_VALUE(jsc_value)) {
         json_value = jsc_value_to_json(jsc_value, 0);
+        g_object_unref(jsc_value);
       }
       /*printf("JSON value: '%s'\n", json_value);*/
 
@@ -198,7 +200,6 @@ bridge_object_handle_accessor(BridgeObject *self, WebKitWebView *web_view, WebKi
 
   const gchar *method = g_variant_to_string(method_var);
   const gchar *json_params = g_variant_to_string(params_var);
-  parameters = jsc_value_new_from_json(context, json_params);
   /*printf("Handling: '%s.%s'\n", name, method);*/
   /*printf("JSON params: '%s'\n", json_params);*/
 
@@ -208,8 +209,10 @@ bridge_object_handle_accessor(BridgeObject *self, WebKitWebView *web_view, WebKi
     webkit_user_message_send_reply(message, empty_msg);
     return;
   }
+  parameters = jsc_value_new_from_json(context, json_params);
 
   GPtrArray *g_array = jsc_array_to_g_ptr_array(parameters);
+  g_object_unref(parameters);
 
   bridge_object_handle_property(self, message, method, g_array);
   bridge_object_handle_method(self, message, method, g_array);
