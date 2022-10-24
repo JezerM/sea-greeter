@@ -273,7 +273,7 @@ g_application_parse_args(gint *argc, gchar ***argv)
 int
 main(int argc, char **argv)
 {
-  GtkApplication *app = gtk_application_new("com.github.jezerm.sea-greeter", G_APPLICATION_FLAGS_NONE);
+  GtkApplication *app = gtk_application_new("com.github.jezerm.sea-greeter", G_APPLICATION_DEFAULT_FLAGS);
 
   setlocale(LC_ALL, "");
 
@@ -296,5 +296,6 @@ main(int argc, char **argv)
   GreeterComm_destroy();
 
   free_greeter_config();
+  logger_debug("Sea Greeter stopped");
   return 0;
 }
