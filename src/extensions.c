@@ -34,7 +34,7 @@ web_page_send_request_cb(
   (void) user_data;
 
   const char *uri = webkit_uri_request_get_uri(request);
-  char *scheme = g_uri_parse_scheme(uri);
+  g_autofree char *scheme = g_uri_parse_scheme(uri);
 
   /*printf("Page %lu URI: %s - %s\n", webkit_web_page_get_id(web_page), uri, scheme);*/
 

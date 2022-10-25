@@ -53,6 +53,8 @@ bridge_object_set_property(GObject *object, guint property_id, const GValue *val
   BridgeObject *self = BRIDGE_OBJECT(object);
   switch ((BridgeObjectProperty) property_id) {
     case PROP_NAME:
+      if (self->name != NULL)
+        g_free(self->name);
       self->name = g_value_dup_string(value);
       break;
     case PROP_PROPERTIES:

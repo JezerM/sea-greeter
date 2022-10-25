@@ -295,6 +295,8 @@ main(int argc, char **argv)
   ThemeUtils_destroy();
   GreeterComm_destroy();
 
+  g_ptr_array_unref(greeter_browsers);
+
   free_greeter_config();
   logger_debug("Sea Greeter stopped");
   return 0;
