@@ -3,6 +3,7 @@ tsc = find_program('tsc', '/usr/bin/tsc', '/usr/lib/node_modules/typescript/bin/
 custom_target(
   'theme_gruvbox',
   build_always_stale: true,
+  build_by_default: true,
   command: [tsc, '--build', '@INPUT@'],
   console: true,
   input: '../themes/themes/gruvbox/tsconfig.json',
@@ -11,6 +12,7 @@ custom_target(
 custom_target(
   'theme_dracula',
   build_always_stale: true,
+  build_by_default: true,
   command: [tsc, '--build', '@INPUT@'],
   console: true,
   input: '../themes/themes/dracula/tsconfig.json',
