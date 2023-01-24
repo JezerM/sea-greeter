@@ -35,7 +35,7 @@ web_extension = library(
 )
 
 greeter_sources = [
-  'greeter.c',
+  'main.c',
   'settings.c', 
   'theme.c',
 
