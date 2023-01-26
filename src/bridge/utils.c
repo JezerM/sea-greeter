@@ -45,6 +45,8 @@ string_get_index_of(const char *source, const char *find)
 int
 string_get_last_index_of(const char *source, const char *find)
 {
+  if (source == NULL || find == NULL)
+    return -1;
   int index = -1;
 
   char *source_rev = g_utf8_strreverse(source, -1);

@@ -724,10 +724,14 @@ LightDM_constructor()
     g_autofree gchar *user_data_dir
         = lightdm_greeter_ensure_shared_data_dir_sync(Greeter, lightdm_user_get_name(user), &err);
 
-    int ind = string_get_last_index_of(user_data_dir, "/");
-    g_autofree gchar *substr = g_utf8_substring(user_data_dir, 0, ind);
+    if (user_data_dir != NULL) {
+      int ind = string_get_last_index_of(user_data_dir, "/");
+      g_autofree gchar *substr = g_utf8_substring(user_data_dir, 0, ind);
 
-    shared_data_directory = g_string_new(substr);
+      shared_data_directory = g_string_new(substr);
+    } else {
+      shared_data_directory = g_string_new("");
+    }
   } else {
     shared_data_directory = g_string_new("");
   }
