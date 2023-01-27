@@ -12,6 +12,7 @@
 #include "bridge/utils.h"
 
 #include "browser.h"
+#include "lightdm/language.h"
 #include "logger.h"
 #include "settings.h"
 #include "utils/utils.h"
@@ -417,6 +418,14 @@ LightDM_language_getter_cb()
 {
   JSCContext *context = get_global_context();
   LightDMLanguage *language = lightdm_get_language();
+
+  if (language == NULL) {
+    GList *languages = lightdm_get_languages();
+    language = languages->data;
+  }
+  if (language == NULL) {
+    return jsc_value_new_string(context, "undefined");
+  }
 
   JSCValue *object = LightDMLanguage_to_JSCValue(context, language);
   return object;
