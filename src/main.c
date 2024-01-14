@@ -155,6 +155,8 @@ app_activate_cb(GtkApplication *app, gpointer user_data)
   for (int i = 0; i < n_monitors; i++) {
     GdkMonitor *monitor = gdk_display_get_monitor(display, i);
     gboolean is_primary = gdk_monitor_is_primary(monitor);
+    if (n_monitors == 1)
+      is_primary = true;
     /*GdkMonitor *monitor = gdk_display_get_monitor(display, 0);*/
     /*gboolean is_primary = i == 0;*/
 
