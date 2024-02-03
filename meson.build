@@ -11,7 +11,7 @@ conf = configuration_data()
 
 conf.set('VERSION', '"@0@"'.format(as_version))
 conf.set('API_VERSION', '"@0@"'.format('1.0.0'))
-conf.set('WEB_EXTENSIONS_DIR', get_option('with-webext-dir'))
+conf.set('WEB_EXTENSIONS_DIR', '"@0@"'.format(get_option('with-webext-dir')))
 
 subdirs = ['src', 'data']
 
