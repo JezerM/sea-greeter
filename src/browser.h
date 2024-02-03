@@ -34,6 +34,7 @@ struct _Browser {
   WindowMetadata meta;
 };
 
+void browser_set_overall_boundary(GPtrArray *browsers);
 Browser *browser_new(GtkApplication *app, GdkMonitor *monitor);
 Browser *browser_new_full(GtkApplication *app, GdkMonitor *monitor, gboolean debug_mode, gboolean is_primary);
 void browser_show_menu_bar(Browser *browser, gboolean show);

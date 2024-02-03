@@ -6,8 +6,6 @@
 
 extern GPtrArray *greeter_browsers;
 
-OverallBoundary overall_boundary;
-
 typedef struct {
   guint64 id;
   GtkBox *main_box;
@@ -107,6 +105,30 @@ browser_initiate_metadata(Browser *self)
 
   gtk_window_get_position(GTK_WINDOW(self), &self->meta.geometry.x, &self->meta.geometry.y);
   gtk_window_get_size(GTK_WINDOW(self), &self->meta.geometry.width, &self->meta.geometry.height);
+}
+
+void
+browser_set_overall_boundary(GPtrArray *browsers)
+{
+  OverallBoundary overall_boundary;
+
+  overall_boundary.maxX = -INT_MAX;
+  overall_boundary.maxY = -INT_MAX;
+  overall_boundary.minX = INT_MAX;
+  overall_boundary.minY = INT_MAX;
+
+  for (guint i = 0; i < browsers->len; i++) {
+    Browser *browser = browsers->pdata[i];
+    GdkRectangle geometry = browser->meta.geometry;
+    overall_boundary.minX = MIN(overall_boundary.minX, geometry.x);
+    overall_boundary.minY = MIN(overall_boundary.minY, geometry.y);
+    overall_boundary.maxX = MAX(overall_boundary.maxX, geometry.x + geometry.width);
+    overall_boundary.maxY = MAX(overall_boundary.maxY, geometry.y + geometry.height);
+  }
+  for (guint i = 0; i < browsers->len; i++) {
+    Browser *browser = browsers->pdata[i];
+    browser->meta.overall_boundary = overall_boundary;
+  }
 }
 
 static void

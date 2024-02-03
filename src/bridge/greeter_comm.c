@@ -64,9 +64,15 @@ GreeterComm_window_metadata_cb(GPtrArray *arguments, BrowserWebView *web_view)
   jsc_value_object_set_property(size, "width", jsc_value_new_number(context, meta.geometry.width));
   jsc_value_object_set_property(size, "height", jsc_value_new_number(context, meta.geometry.height));
 
+  JSCValue *overall_boundary = jsc_value_new_object(context, NULL, NULL);
+  jsc_value_object_set_property(overall_boundary, "minX", jsc_value_new_number(context, meta.overall_boundary.minX));
+  jsc_value_object_set_property(overall_boundary, "minY", jsc_value_new_number(context, meta.overall_boundary.minY));
+  jsc_value_object_set_property(overall_boundary, "maxX", jsc_value_new_number(context, meta.overall_boundary.maxX));
+  jsc_value_object_set_property(overall_boundary, "maxY", jsc_value_new_number(context, meta.overall_boundary.maxY));
+
   jsc_value_object_set_property(value, "position", position);
   jsc_value_object_set_property(value, "size", size);
-  jsc_value_object_set_property(value, "overallBoundary", position);
+  jsc_value_object_set_property(value, "overallBoundary", overall_boundary);
 
   return value;
 }
