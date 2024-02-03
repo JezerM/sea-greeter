@@ -130,9 +130,9 @@ browser_web_view_user_message_received_cb(BrowserWebView *web_view, WebKitUserMe
     return;
   }
 
-  handle_lightdm_accessor(WEBKIT_WEB_VIEW(web_view), message);
-  handle_greeter_config_accessor(WEBKIT_WEB_VIEW(web_view), message);
-  handle_theme_utils_accessor(WEBKIT_WEB_VIEW(web_view), message);
+  handle_lightdm_accessor(web_view, message);
+  handle_greeter_config_accessor(web_view, message);
+  handle_theme_utils_accessor(web_view, message);
   handle_greeter_comm_accessor(web_view, message);
 }
 static gboolean
@@ -209,7 +209,7 @@ browser_web_view_init(BrowserWebView *self)
 }
 
 BrowserWebView *
-browser_web_view_new()
+browser_web_view_new(void)
 {
   BrowserWebView *web_view = g_object_new(BROWSER_WEB_VIEW_TYPE, NULL);
   return web_view;

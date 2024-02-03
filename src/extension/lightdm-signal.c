@@ -13,7 +13,7 @@ static JSCClass *LightDM_signal_class;
 static JSCValue *ldm_signal_constructor;
 
 static void
-LightDM_signal_constructor()
+LightDM_signal_constructor(void)
 {
 }
 

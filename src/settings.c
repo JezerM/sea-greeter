@@ -9,7 +9,7 @@
 GreeterConfig *greeter_config;
 
 static void
-init_greeter_config_branding()
+init_greeter_config_branding(void)
 {
   GreeterConfigBranding *branding = NULL;
   branding = malloc(sizeof *branding);
@@ -19,7 +19,7 @@ init_greeter_config_branding()
   greeter_config->branding = branding;
 }
 static void
-init_greeter_config_greeter()
+init_greeter_config_greeter(void)
 {
   GreeterConfigGreeter *greeter = NULL;
   greeter = malloc(sizeof *greeter);
@@ -33,7 +33,7 @@ init_greeter_config_greeter()
   greeter_config->greeter = greeter;
 }
 static void
-init_greeter_config_features()
+init_greeter_config_features(void)
 {
   GreeterConfigFeatures *features = NULL;
   features = malloc(sizeof *features);
@@ -45,7 +45,7 @@ init_greeter_config_features()
   greeter_config->features = features;
 }
 static void
-init_greeter_config_app()
+init_greeter_config_app(void)
 {
   GreeterConfigApp *app = NULL;
   app = malloc(sizeof *app);
@@ -55,7 +55,7 @@ init_greeter_config_app()
   greeter_config->app = app;
 }
 static void
-init_greeter_config_theme()
+init_greeter_config_theme(void)
 {
   GreeterConfigTheme *theme = NULL;
   theme = malloc(sizeof *theme);
@@ -65,7 +65,7 @@ init_greeter_config_theme()
 }
 
 void
-print_greeter_config()
+print_greeter_config(void)
 {
   GString *layouts = g_string_new("");
 
@@ -115,7 +115,7 @@ print_greeter_config()
 }
 
 static void
-init_greeter_config()
+init_greeter_config(void)
 {
   greeter_config = g_malloc(sizeof *greeter_config);
   init_greeter_config_branding();
@@ -127,7 +127,7 @@ init_greeter_config()
 }
 
 void
-free_greeter_config_branding()
+free_greeter_config_branding(void)
 {
   if (greeter_config == NULL)
     return;
@@ -141,7 +141,7 @@ free_greeter_config_branding()
   g_free(branding);
 }
 void
-free_greeter_config_greeter()
+free_greeter_config_greeter(void)
 {
   if (greeter_config == NULL)
     return;
@@ -155,7 +155,7 @@ free_greeter_config_greeter()
   g_free(greeter);
 }
 void
-free_greeter_config_features()
+free_greeter_config_features(void)
 {
   if (greeter_config == NULL)
     return;
@@ -167,7 +167,7 @@ free_greeter_config_features()
   g_free(features);
 }
 void
-free_greeter_config_app()
+free_greeter_config_app(void)
 {
   if (greeter_config == NULL)
     return;
@@ -179,7 +179,7 @@ free_greeter_config_app()
   g_free(app);
 }
 void
-free_greeter_config_theme()
+free_greeter_config_theme(void)
 {
   if (greeter_config == NULL)
     return;
@@ -193,7 +193,7 @@ free_greeter_config_theme()
 }
 
 void
-free_greeter_config()
+free_greeter_config(void)
 {
   free_greeter_config_branding();
   free_greeter_config_greeter();
@@ -355,7 +355,7 @@ node_free(GNode *node, gpointer data)
 }
 
 void
-load_configuration()
+load_configuration(void)
 {
   init_greeter_config();
 

@@ -7,7 +7,7 @@
 static JSCContext *Context = NULL;
 
 JSCContext *
-get_global_context()
+get_global_context(void)
 {
   if (Context == NULL)
     Context = jsc_context_new();

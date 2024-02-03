@@ -239,7 +239,7 @@ LightDM_suspend_cb(GPtrArray *arguments)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_authentication_user_getter_cb()
+LightDM_authentication_user_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   const gchar *user = lightdm_greeter_get_authentication_user(Greeter);
@@ -252,7 +252,7 @@ LightDM_authentication_user_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_autologin_guest_getter_cb()
+LightDM_autologin_guest_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_autologin_guest_hint(Greeter);
@@ -263,7 +263,7 @@ LightDM_autologin_guest_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_autologin_timeout_getter_cb()
+LightDM_autologin_timeout_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gint value = lightdm_greeter_get_autologin_timeout_hint(Greeter);
@@ -274,7 +274,7 @@ LightDM_autologin_timeout_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_autologin_user_getter_cb()
+LightDM_autologin_user_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   const gchar *value = lightdm_greeter_get_autologin_user_hint(Greeter);
@@ -287,7 +287,7 @@ LightDM_autologin_user_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_can_hibernate_getter_cb()
+LightDM_can_hibernate_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_get_can_hibernate();
@@ -298,7 +298,7 @@ LightDM_can_hibernate_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_can_restart_getter_cb()
+LightDM_can_restart_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_get_can_restart();
@@ -309,7 +309,7 @@ LightDM_can_restart_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_can_shutdown_getter_cb()
+LightDM_can_shutdown_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_get_can_shutdown();
@@ -320,7 +320,7 @@ LightDM_can_shutdown_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_can_suspend_getter_cb()
+LightDM_can_suspend_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_get_can_suspend();
@@ -328,7 +328,7 @@ LightDM_can_suspend_getter_cb()
 }
 static int brightness = 85;
 static JSCValue *
-LightDM_brightness_getter_cb()
+LightDM_brightness_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   return jsc_value_new_number(context, brightness);
@@ -344,7 +344,7 @@ LightDM_brightness_setter_cb(JSCValue *object)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_default_session_getter_cb()
+LightDM_default_session_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   const gchar *session = lightdm_greeter_get_default_session_hint(Greeter);
@@ -357,7 +357,7 @@ LightDM_default_session_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_has_guest_account_getter_cb()
+LightDM_has_guest_account_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean has_guest_account = lightdm_greeter_get_has_guest_account_hint(Greeter);
@@ -368,7 +368,7 @@ LightDM_has_guest_account_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_hide_users_hint_getter_cb()
+LightDM_hide_users_hint_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean hide_users = lightdm_greeter_get_hide_users_hint(Greeter);
@@ -379,7 +379,7 @@ LightDM_hide_users_hint_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_hostname_getter_cb()
+LightDM_hostname_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   const gchar *hostname = lightdm_get_hostname();
@@ -392,7 +392,7 @@ LightDM_hostname_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_in_authentication_getter_cb()
+LightDM_in_authentication_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_in_authentication(Greeter);
@@ -403,7 +403,7 @@ LightDM_in_authentication_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_is_authenticated_getter_cb()
+LightDM_is_authenticated_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_is_authenticated(Greeter);
@@ -414,7 +414,7 @@ LightDM_is_authenticated_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_language_getter_cb()
+LightDM_language_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   LightDMLanguage *language = lightdm_get_language();
@@ -435,7 +435,7 @@ LightDM_language_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_languages_getter_cb()
+LightDM_languages_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   GList *languages = lightdm_get_languages();
@@ -456,7 +456,7 @@ LightDM_languages_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_layout_getter_cb()
+LightDM_layout_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   LightDMLayout *layout = lightdm_get_layout();
@@ -482,7 +482,7 @@ LightDM_layout_setter_cb(JSCValue *object)
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_layouts_getter_cb()
+LightDM_layouts_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   GList *layouts = lightdm_get_layouts();
@@ -503,7 +503,7 @@ LightDM_layouts_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_lock_hint_getter_cb()
+LightDM_lock_hint_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_lock_hint(Greeter);
@@ -514,7 +514,7 @@ LightDM_lock_hint_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_remote_sessions_getter_cb()
+LightDM_remote_sessions_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   GList *sessions = lightdm_get_remote_sessions();
@@ -535,7 +535,7 @@ LightDM_remote_sessions_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_select_guest_hint_getter_cb()
+LightDM_select_guest_hint_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_select_guest_hint(Greeter);
@@ -546,7 +546,7 @@ LightDM_select_guest_hint_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_select_user_hint_getter_cb()
+LightDM_select_user_hint_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   const gchar *value = lightdm_greeter_get_select_user_hint(Greeter);
@@ -559,7 +559,7 @@ LightDM_select_user_hint_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_sessions_getter_cb()
+LightDM_sessions_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   GList *sessions = lightdm_get_sessions();
@@ -580,7 +580,7 @@ LightDM_sessions_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_shared_data_directory_getter_cb()
+LightDM_shared_data_directory_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   if (shared_data_directory->len == 0 || shared_data_directory->str == NULL)
@@ -592,7 +592,7 @@ LightDM_shared_data_directory_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_show_manual_login_hint_getter_cb()
+LightDM_show_manual_login_hint_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_show_manual_login_hint(Greeter);
@@ -603,7 +603,7 @@ LightDM_show_manual_login_hint_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_show_remote_login_hint_getter_cb()
+LightDM_show_remote_login_hint_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   gboolean value = lightdm_greeter_get_show_remote_login_hint(Greeter);
@@ -614,7 +614,7 @@ LightDM_show_remote_login_hint_getter_cb()
  * @param instance The lightdm object instance
  */
 static JSCValue *
-LightDM_users_getter_cb()
+LightDM_users_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   GList *users = lightdm_user_list_get_users(UserList);
@@ -704,7 +704,7 @@ show_message_cb(LightDMGreeter *greeter, const gchar *text, LightDMMessageType t
  * Connect LightDM signals to their callbacks
  */
 void
-LightDM_connect_signals()
+LightDM_connect_signals(void)
 {
   g_signal_connect(Greeter, "authentication-complete", G_CALLBACK(authentication_complete_cb), NULL);
   g_signal_connect(Greeter, "autologin-timer-expired", G_CALLBACK(autologin_timer_expired_cb), NULL);
@@ -716,7 +716,7 @@ LightDM_connect_signals()
  * LightDM Class constructor, should be called only once in sea-greeter's life
  */
 static void
-LightDM_constructor()
+LightDM_constructor(void)
 {
   GError *err = NULL;
 
@@ -749,13 +749,13 @@ LightDM_constructor()
 }
 
 void
-handle_lightdm_accessor(WebKitWebView *web_view, WebKitUserMessage *message)
+handle_lightdm_accessor(BrowserWebView *web_view, WebKitUserMessage *message)
 {
   bridge_object_handle_accessor(LightDM_object, web_view, message);
 }
 
 void
-LightDM_destroy()
+LightDM_destroy(void)
 {
   g_object_unref(Greeter);
   g_object_unref(LightDM_object);
@@ -766,7 +766,7 @@ LightDM_destroy()
  * Initialize the LightDM environment
  */
 void
-LightDM_initialize()
+LightDM_initialize(void)
 {
   UserList = lightdm_user_list_get_instance();
   Greeter = lightdm_greeter_new();

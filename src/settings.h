@@ -102,7 +102,7 @@ typedef struct greeter_config_st {
 
 extern GreeterConfig *greeter_config;
 
-void print_greeter_config();
-void free_greeter_config();
-void load_configuration();
+void print_greeter_config(void);
+void free_greeter_config(void);
+void load_configuration(void);
 #endif

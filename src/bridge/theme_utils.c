@@ -117,20 +117,20 @@ ThemeUtils_dirlist_cb(GPtrArray *arguments)
 }
 
 void
-handle_theme_utils_accessor(WebKitWebView *web_view, WebKitUserMessage *message)
+handle_theme_utils_accessor(BrowserWebView *web_view, WebKitUserMessage *message)
 {
   bridge_object_handle_accessor(ThemeUtils_object, web_view, message);
 }
 
 void
-ThemeUtils_destroy()
+ThemeUtils_destroy(void)
 {
   g_object_unref(ThemeUtils_object);
   g_ptr_array_free(allowed_dirs, true);
 }
 
 void
-ThemeUtils_initialize()
+ThemeUtils_initialize(void)
 {
   const struct JSCClassMethod ThemeUtils_methods[] = {
     { "dirlist", G_CALLBACK(ThemeUtils_dirlist_cb), G_TYPE_NONE },

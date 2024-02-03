@@ -44,7 +44,7 @@ initialize_web_extensions(WebKitWebContext *context, gpointer user_data)
  * Set keybinding accelerators
  */
 static void
-set_keybindings()
+set_keybindings(void)
 {
   const struct accelerator {
     const gchar *action;
@@ -88,8 +88,11 @@ set_keybindings()
 }
 
 static void
-print_info()
+print_info(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
+  (void) action;
+  (void) parameter;
+  (void) user_data;
   logger_debug("INFO");
 }
 

@@ -18,7 +18,7 @@
 static BridgeObject *GreeterConfig_object = NULL;
 
 static JSCValue *
-GreeterConfig_branding_getter_cb()
+GreeterConfig_branding_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
@@ -34,7 +34,7 @@ GreeterConfig_branding_getter_cb()
 }
 
 static JSCValue *
-GreeterConfig_greeter_getter_cb()
+GreeterConfig_greeter_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
@@ -58,7 +58,7 @@ GreeterConfig_greeter_getter_cb()
 }
 
 static JSCValue *
-GreeterConfig_features_getter_cb()
+GreeterConfig_features_getter_cb(void)
 {
   JSCContext *context = get_global_context();
   JSCValue *value = jsc_value_new_object(context, NULL, NULL);
@@ -82,7 +82,7 @@ GreeterConfig_features_getter_cb()
 }
 
 static JSCValue *
-GreeterConfig_layouts_getter_cb()
+GreeterConfig_layouts_getter_cb(void)
 {
   JSCContext *context = get_global_context();
 
@@ -112,19 +112,19 @@ GreeterConfig_layouts_getter_cb()
 }
 
 void
-handle_greeter_config_accessor(WebKitWebView *web_view, WebKitUserMessage *message)
+handle_greeter_config_accessor(BrowserWebView *web_view, WebKitUserMessage *message)
 {
   bridge_object_handle_accessor(GreeterConfig_object, web_view, message);
 }
 
 void
-GreeterConfig_destroy()
+GreeterConfig_destroy(void)
 {
   g_object_unref(GreeterConfig_object);
 }
 
 void
-GreeterConfig_initialize()
+GreeterConfig_initialize(void)
 {
   const struct JSCClassProperty GreeterConfig_properties[] = {
     { "branding", G_CALLBACK(GreeterConfig_branding_getter_cb), NULL, JSC_TYPE_VALUE },

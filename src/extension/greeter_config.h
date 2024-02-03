@@ -1,11 +1,10 @@
 #ifndef EXTENSION_GREETER_CONFIG_H
 #define EXTENSION_GREETER_CONFIG_H 1
 
-#include <webkit2/webkit-web-extension.h>
 #include <lightdm-gobject-1/lightdm.h>
+#include <webkit2/webkit-web-extension.h>
 
-void
-GreeterConfig_initialize(
+void GreeterConfig_initialize(
     WebKitScriptWorld *world,
     WebKitWebPage *web_page,
     WebKitFrame *web_frame,

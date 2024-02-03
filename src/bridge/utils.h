@@ -21,7 +21,7 @@ struct JSCClassSignal {
   const gchar *name;
 };
 
-JSCContext *get_global_context();
+JSCContext *get_global_context(void);
 
 gchar *js_value_to_string_or_null(JSCValue *value);
 

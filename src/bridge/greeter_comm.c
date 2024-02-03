@@ -78,7 +78,7 @@ handle_greeter_comm_accessor(BrowserWebView *web_view, WebKitUserMessage *messag
 }
 
 void
-GreeterComm_destroy()
+GreeterComm_destroy(void)
 {
   g_object_unref(GreeterComm_object);
 }
@@ -87,7 +87,7 @@ GreeterComm_destroy()
  * Initialize GreeterComm
  */
 void
-GreeterComm_initialize()
+GreeterComm_initialize(void)
 {
   struct JSCClassMethod Comm_methods[] = {
     { "broadcast", G_CALLBACK(GreeterComm_broadcast_cb), G_TYPE_NONE },

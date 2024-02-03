@@ -35,7 +35,7 @@ sort_ptr_array(gconstpointer a, gconstpointer b)
 }
 
 GPtrArray *
-list_themes()
+list_themes(void)
 {
   DIR *dir;
   struct dirent *ent;
@@ -66,7 +66,7 @@ list_themes()
 }
 
 void
-print_themes()
+print_themes(void)
 {
   GPtrArray *themes = list_themes();
   if (themes == NULL)
@@ -86,7 +86,7 @@ print_themes()
  * Loads the theme directory
  */
 char *
-load_theme_dir()
+load_theme_dir(void)
 {
   const char *theme = greeter_config->greeter->theme;
   const char *dir = greeter_config->app->theme_dir;
@@ -126,7 +126,7 @@ load_theme_dir()
  * The provided theme with `--theme` flag is preferred over index.yml
  */
 char *
-load_primary_theme_path()
+load_primary_theme_path(void)
 {
   if (!theme_dir)
     load_theme_dir();
@@ -168,7 +168,7 @@ load_primary_theme_path()
  * This can only be set with index.yml, either it defaults to primary html
  */
 char *
-load_secondary_theme_path()
+load_secondary_theme_path(void)
 {
   if (!theme_dir)
     load_theme_dir();
@@ -237,7 +237,7 @@ node_free(GNode *node, gpointer data)
 }
 
 void
-load_theme_config()
+load_theme_config(void)
 {
   if (!theme_dir)
     theme_dir = load_theme_dir();

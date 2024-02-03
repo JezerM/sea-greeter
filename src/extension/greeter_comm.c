@@ -38,6 +38,7 @@ GreeterComm_window_metadata_cb(Comm *instance)
 static void
 GreeterComm_broadcast_cb(Comm *instance, GPtrArray *arguments)
 {
+  (void) instance;
   JSCContext *context = jsc_context_get_current();
 
   GVariant *parameters = jsc_parameters_to_g_variant_array(context, "broadcast", arguments);
