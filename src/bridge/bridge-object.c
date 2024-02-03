@@ -3,6 +3,7 @@
 
 #include "bridge/bridge-object.h"
 #include "bridge/utils.h"
+#include "browser-web-view.h"
 #include "utils/utils.h"
 
 G_DEFINE_TYPE(BridgeObject, bridge_object, G_TYPE_OBJECT)
@@ -120,7 +121,8 @@ bridge_object_handle_property(
     BridgeObject *self,
     WebKitUserMessage *message,
     const gchar *method,
-    GPtrArray *parameters)
+    GPtrArray *parameters,
+    BrowserWebView *web_view)
 {
   if (self->properties->len == 0)
     return;
@@ -133,13 +135,13 @@ bridge_object_handle_property(
 
       if (parameters->len > 0) {
         JSCValue *param = parameters->pdata[0];
-        ((void (*)(JSCValue *)) current->setter)(param);
+        ((void (*)(JSCValue *, BrowserWebView *)) current->setter)(param, web_view);
         WebKitUserMessage *empty_msg = webkit_user_message_new("", NULL);
         webkit_user_message_send_reply(message, empty_msg);
         break;
       }
 
-      g_autoptr(JSCValue) jsc_value = ((JSCValue * (*) (void) ) current->getter)();
+      g_autoptr(JSCValue) jsc_value = ((JSCValue * (*) (BrowserWebView * web_view)) current->getter)(web_view);
       g_autofree gchar *json_value = g_strdup("undefined");
       if (JSC_IS_VALUE(jsc_value)) {
         json_value = jsc_value_to_json(jsc_value, 0);
@@ -155,7 +157,12 @@ bridge_object_handle_property(
   }
 }
 static void
-bridge_object_handle_method(BridgeObject *self, WebKitUserMessage *message, const gchar *method, GPtrArray *parameters)
+bridge_object_handle_method(
+    BridgeObject *self,
+    WebKitUserMessage *message,
+    const gchar *method,
+    GPtrArray *parameters,
+    BrowserWebView *web_view)
 {
   if (self->methods->len == 0)
     return;
@@ -165,7 +172,8 @@ bridge_object_handle_method(BridgeObject *self, WebKitUserMessage *message, cons
     /*printf("Current: %d - %s\n", i, current->name);*/
 
     if (g_strcmp0(current->name, method) == 0) {
-      g_autoptr(JSCValue) jsc_value = ((JSCValue * (*) (GPtrArray *) ) current->callback)(parameters);
+      g_autoptr(JSCValue) jsc_value
+          = ((JSCValue * (*) (GPtrArray *, BrowserWebView *) ) current->callback)(parameters, web_view);
       g_autofree gchar *json_value = g_strdup("undefined");
       if (JSC_IS_VALUE(jsc_value)) {
         json_value = jsc_value_to_json(jsc_value, 0);
@@ -182,9 +190,8 @@ bridge_object_handle_method(BridgeObject *self, WebKitUserMessage *message, cons
 }
 
 void
-bridge_object_handle_accessor(BridgeObject *self, WebKitWebView *web_view, WebKitUserMessage *message)
+bridge_object_handle_accessor(BridgeObject *self, BrowserWebView *web_view, WebKitUserMessage *message)
 {
-  (void) web_view;
 
   const char *name = webkit_user_message_get_name(message);
   if (g_strcmp0(name, self->name) != 0)
@@ -223,8 +230,8 @@ bridge_object_handle_accessor(BridgeObject *self, WebKitWebView *web_view, WebKi
 
   g_autoptr(GPtrArray) g_array = jsc_array_to_g_ptr_array(parameters);
 
-  bridge_object_handle_property(self, message, method, g_array);
-  bridge_object_handle_method(self, message, method, g_array);
+  bridge_object_handle_property(self, message, method, g_array, web_view);
+  bridge_object_handle_method(self, message, method, g_array, web_view);
 }
 
 BridgeObject *
