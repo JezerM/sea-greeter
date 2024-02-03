@@ -6,7 +6,10 @@
 
 extern GPtrArray *greeter_browsers;
 
+OverallBoundary overall_boundary;
+
 typedef struct {
+  guint64 id;
   GtkBox *main_box;
   GtkMenuBar *menu_bar;
 } BrowserPrivate;
@@ -14,7 +17,8 @@ typedef struct {
 G_DEFINE_TYPE_WITH_PRIVATE(Browser, browser, GTK_TYPE_APPLICATION_WINDOW)
 
 typedef enum {
-  PROP_MONITOR = 1,
+  PROP_ID = 1,
+  PROP_MONITOR,
   PROP_DEBUG_MODE,
   PROP_IS_PRIMARY,
   N_PROPERTIES,
@@ -81,6 +85,30 @@ browser_show_menu_bar(Browser *browser, gboolean show)
   }
 }
 
+static guint64
+browser_gen_id(Browser *self)
+{
+  const char *manufacturer = gdk_monitor_get_manufacturer(self->monitor);
+  const char *model = gdk_monitor_get_model(self->monitor);
+
+  guint64 manufacturer_hash = manufacturer == NULL ? 0 : g_str_hash(manufacturer);
+  guint64 model_hash = model == NULL ? 0 : g_str_hash(model);
+
+  return (manufacturer_hash << 24) | (model_hash << 8);
+}
+
+static void
+browser_initiate_metadata(Browser *self)
+{
+  BrowserPrivate *priv = browser_get_instance_private(self);
+
+  self->meta.id = priv->id;
+  self->meta.is_primary = self->is_primary;
+
+  gtk_window_get_position(GTK_WINDOW(self), &self->meta.geometry.x, &self->meta.geometry.y);
+  gtk_window_get_size(GTK_WINDOW(self), &self->meta.geometry.width, &self->meta.geometry.height);
+}
+
 static void
 browser_constructed(GObject *object)
 {
@@ -105,6 +133,10 @@ browser_constructed(GObject *object)
   g_object_unref(provider);
 
   g_action_map_add_action_entries(G_ACTION_MAP(browser), win_entries, G_N_ELEMENTS(win_entries), browser);
+
+  priv->id = browser_gen_id(browser);
+
+  browser_initiate_metadata(browser);
 
   if (browser->debug_mode) {
     g_action_map_add_action_entries(G_ACTION_MAP(browser), win_debug_entries, G_N_ELEMENTS(win_debug_entries), browser);
@@ -146,7 +178,12 @@ browser_get_property(GObject *object, guint property_id, GValue *value, GParamSp
 {
   (void) pspec;
   Browser *self = BROWSER_WINDOW(object);
+  BrowserPrivate *priv = browser_get_instance_private(self);
+
   switch ((BrowserProperty) property_id) {
+    case PROP_ID:
+      g_value_set_int(value, priv->id);
+      break;
     case PROP_MONITOR:
       g_value_set_object(value, self->monitor);
       break;
@@ -175,6 +212,8 @@ browser_class_init(BrowserClass *klass)
   object_class->constructed = browser_constructed;
 
   widget_class->destroy = browser_destroy;
+
+  browser_properties[PROP_ID] = g_param_spec_int("id", "ID", "The window internal id", 0, INT_MAX, 0, G_PARAM_READABLE);
 
   browser_properties[PROP_MONITOR] = g_param_spec_object(
       "monitor",

@@ -21,28 +21,17 @@ struct JSCClassSignal {
   const gchar *name;
 };
 
-JSCContext *
-get_global_context();
+JSCContext *get_global_context();
 
-gchar *
-js_value_to_string_or_null(JSCValue *value);
+gchar *js_value_to_string_or_null(JSCValue *value);
 
-int
-string_get_index_of(const char *source, const char *find);
+int string_get_index_of(const char *source, const char *find);
 
-int
-string_get_last_index_of(const char *source, const char *find);
+int string_get_last_index_of(const char *source, const char *find);
 
-void
-initialize_class_properties(JSCClass *class, const struct JSCClassProperty properties[]);
+void initialize_class_properties(JSCClass *class, const struct JSCClassProperty properties[]);
 
-void
-initialize_class_methods(JSCClass *class, const struct JSCClassMethod methods[]);
+void initialize_class_methods(JSCClass *class, const struct JSCClassMethod methods[]);
 
-void
-initialize_object_signals(
-    JSCContext *js_context,
-    JSCValue *object,
-    const struct JSCClassSignal signals[]
-);
+void initialize_object_signals(JSCContext *js_context, JSCValue *object, const struct JSCClassSignal signals[]);
 #endif

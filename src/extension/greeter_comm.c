@@ -126,10 +126,11 @@ request_window_metadata_cb(GObject *web_page, GAsyncResult *res, gpointer user_d
   Comm *instance = user_data;
 
   WebKitUserMessage *response = webkit_web_page_send_message_to_view_finish(WEBKIT_WEB_PAGE(web_page), res, NULL);
-
-  instance->_window_metadata = jsc_value_new_string(global_context, "UWU");
-
-  /*printf("instance->_ready: %p - %d\n", instance->_ready, jsc_value_is_function(instance->_ready));*/
+  if (!WEBKIT_IS_USER_MESSAGE(response)) {
+    return;
+  }
+  GVariant *msg_param = webkit_user_message_get_parameters(response);
+  instance->_window_metadata = g_variant_reply_to_jsc_value(global_context, msg_param);
 
   if (instance->_ready != NULL && jsc_value_is_function(instance->_ready))
     (void) jsc_value_function_call(instance->_ready, G_TYPE_NONE, NULL);
